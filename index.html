@@ -152,6 +152,12 @@ header.top .intro{margin:10px 0 0;font-size:13px;color:var(--faint);line-height:
 .swap-hint{position:absolute;right:8px;bottom:8px;padding:4px 11px;border-radius:999px;font-size:11px;font-weight:600;color:#fff;background:rgba(20,20,22,.45);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.25);pointer-events:none}
 .bigfig figcaption{margin-top:7px;font-size:11.5px;color:var(--faint);line-height:1.5}
 .badge{position:absolute;left:8px;top:8px;padding:3px 9px;border-radius:999px;font-size:10.5px;font-weight:600;color:#fff;background:rgba(20,20,22,.45);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.25);pointer-events:none}
+/* 加载失败占位（0.2.16）：缩略图 / 原图层加载失败时明确提示并可点按重试，不再一直灰块 */
+.img-fallback{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;font-size:13px;font-weight:600;line-height:1.6;color:var(--dim);background:var(--fill);cursor:pointer;z-index:3}
+.img-fallback[hidden]{display:none}
+.img-fallback .fb-retry{font-size:12px;font-weight:600;color:var(--accent);text-decoration:underline;text-underline-offset:3px}
+.bigimg .img-loading{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);padding:5px 13px;border-radius:999px;font-size:11.5px;font-weight:600;color:#fff;background:rgba(20,20,22,.45);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.25);pointer-events:none;z-index:2}
+.bigimg .img-loading[hidden]{display:none}
 .tagrow{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
 .tagchip{font-size:13px;font-weight:500;color:var(--dim);background:var(--fill2);border:1px solid var(--hairline);border-radius:999px;padding:3px 10px}
 .ver-line{margin-top:14px;padding-top:11px;border-top:1px solid var(--hairline);display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13px;color:var(--faint)}
@@ -461,7 +467,7 @@ footer{margin-top:44px;padding-top:18px;border-top:1px solid var(--hairline);tex
     <div id="browse-groups"></div>
 
     <footer>
-      <p>BE MASTER · 极简版 0.2.15 · 邀请码与用户协议新增 + 设置折叠组（基于 0.2.14）<br>版本代码规则：风格代码-V主.次.修订（如 PT-01-V1.2.0）；风格数据每改一次，对应递增修订号，网站整体版本同步记录在资料库</p>
+      <p>BE MASTER · 极简版 0.2.17 · 缩略图导出修复：缩略图改为显式引用，GitHub Pages 可完整加载（基于 0.2.16）<br>版本代码规则：风格代码-V主.次.修订（如 PT-01-V1.2.0）；风格数据每改一次，对应递增修订号，网站整体版本同步记录在资料库</p>
     </footer>
   </section>
 
@@ -615,9 +621,9 @@ footer{margin-top:44px;padding-top:18px;border-top:1px solid var(--hairline);tex
         </div></div>
       </div>
       <div class="set-row acc" data-acc>
-        <button type="button" class="acc-head" data-acc-head aria-expanded="false"><span class="acc-title">关于与版本</span><span class="acc-val" id="acc-about-val">0.2.15</span><span class="acc-chev">›</span></button>
+        <button type="button" class="acc-head" data-acc-head aria-expanded="false"><span class="acc-title">关于与版本</span><span class="acc-val" id="acc-about-val">0.2.17</span><span class="acc-chev">›</span></button>
         <div class="acc-body"><div class="acc-inner acc-inner-pad">
-          <p class="set-desc">BE MASTER 极简版 <span id="about-version">0.2.15</span> · 数据保留在本机浏览器中，照片在本机处理。完整使用规则见「我的 · 用户协议」。</p>
+          <p class="set-desc">BE MASTER 极简版 <span id="about-version">0.2.17</span> · 数据保留在本机浏览器中，照片在本机处理。完整使用规则见「我的 · 用户协议」。</p>
         </div></div>
       </div>
     </div>
@@ -1095,6 +1101,50 @@ function effectivePreview(p){
   if(p.sec==="landscape"&&currentLandscapeSample().id==="city")return p.previewCity||p.preview;
   return p.preview;
 }
+/* 加载优化（0.2.16）+ 导出修复（0.2.17）：缩略图一律走显式映射表 THUMB_MAP（960px 宽 WebP，单张 ≤150KB）。
+   0.2.16 曾用字符串拼接在运行时推导缩略图地址，index.html 里没有任何 assets/thumb-*.webp 的字面引用，
+   导出 / 上传到 GitHub Pages 时按字面引用收集资源会漏掉全部 31 张缩略图（导出后未解析、Pages 上 404）。
+   本版把 31 条映射以字面量写死在源码中，导出扫描可完整收集；查不到映射时才回退到推导（兜底，不依赖它）。
+   相对路径前缀 assets/... 不变；非 assets/ 开头的地址（如用户上传的 data: 图）原样返回。 */
+var THUMB_MAP={
+  "assets/b5d7732dbed0.webp":"assets/thumb-b5d7732dbed0.webp",
+  "assets/1d6babb32c53.webp":"assets/thumb-1d6babb32c53.webp",
+  "assets/828ce0d2ceb9.webp":"assets/thumb-828ce0d2ceb9.webp",
+  "assets/821032d93f3b.webp":"assets/thumb-821032d93f3b.webp",
+  "assets/0581ed17373f.webp":"assets/thumb-0581ed17373f.webp",
+  "assets/f71078b5a44e.webp":"assets/thumb-f71078b5a44e.webp",
+  "assets/1cf1f187dd57.webp":"assets/thumb-1cf1f187dd57.webp",
+  "assets/a671ca578d58.webp":"assets/thumb-a671ca578d58.webp",
+  "assets/b1d423cd3972.webp":"assets/thumb-b1d423cd3972.webp",
+  "assets/6968858ae451.webp":"assets/thumb-6968858ae451.webp",
+  "assets/c33f64fc7f64.webp":"assets/thumb-c33f64fc7f64.webp",
+  "assets/dca4dda27d76.webp":"assets/thumb-dca4dda27d76.webp",
+  "assets/97878dce259a.webp":"assets/thumb-97878dce259a.webp",
+  "assets/3af03c1fed5b.webp":"assets/thumb-3af03c1fed5b.webp",
+  "assets/1817a731e184.webp":"assets/thumb-1817a731e184.webp",
+  "assets/f42acee549e4.webp":"assets/thumb-f42acee549e4.webp",
+  "assets/60eb9d6ca2e3.webp":"assets/thumb-60eb9d6ca2e3.webp",
+  "assets/2cedf7d3c4c6.webp":"assets/thumb-2cedf7d3c4c6.webp",
+  "assets/83e660c8ee92.webp":"assets/thumb-83e660c8ee92.webp",
+  "assets/3cc41d22e443.webp":"assets/thumb-3cc41d22e443.webp",
+  "assets/2164969b6f3d.webp":"assets/thumb-2164969b6f3d.webp",
+  "assets/72e8089cf666.webp":"assets/thumb-72e8089cf666.webp",
+  "assets/84142c27e7ee.webp":"assets/thumb-84142c27e7ee.webp",
+  "assets/1d18295e9a88.webp":"assets/thumb-1d18295e9a88.webp",
+  "assets/371bf85fab67.webp":"assets/thumb-371bf85fab67.webp",
+  "assets/11af9fbe5591.webp":"assets/thumb-11af9fbe5591.webp",
+  "assets/d970668898d8.webp":"assets/thumb-d970668898d8.webp",
+  "assets/f662873cdc05.webp":"assets/thumb-f662873cdc05.webp",
+  "assets/f8c89c69ef06.jpg":"assets/thumb-f8c89c69ef06.webp",
+  "assets/a03f0374ef8a.jpg":"assets/thumb-a03f0374ef8a.webp",
+  "assets/c1c3a6896abb.jpg":"assets/thumb-c1c3a6896abb.webp"
+};
+function thumbOf(src){
+  if(!src||src.indexOf("assets/")!==0)return src;
+  if(Object.prototype.hasOwnProperty.call(THUMB_MAP,src))return THUMB_MAP[src];
+  var base=src.split("/").pop().replace(/\.[^.]+$/,"");
+  return "assets/thumb-"+base+".webp";
+}
 function byId(id){for(var i=0;i<DATA.length;i++)if(DATA[i].id===id)return DATA[i];return null;}
 var HEART_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>';
 
@@ -1130,7 +1180,9 @@ function renderCarousel(){
     var isCurrent=realIdx===idx;
     var isClone=loop&&(j===0||j===renderList.length-1);
     var d=document.createElement("div");d.className="carousel-slide";d.setAttribute("aria-hidden",isCurrent?"false":"true");
-    var im=document.createElement("img");im.src=slide.img;im.alt="示例图原图";im.draggable=false;im.loading="eager";
+    /* 轮播只请求示例图缩略图（0.2.16）：当前张优先加载，其余懒加载；点开放大时才请求原尺寸原图（openLightbox 用 slide.img） */
+    var im=document.createElement("img");im.src=thumbOf(slide.img);im.alt="示例图原图";im.draggable=false;im.decoding="async";im.loading=isCurrent?"eager":"lazy";if(isCurrent)im.fetchPriority="high";
+    im.addEventListener("error",function(){im.alt="示例图加载失败，请检查网络后刷新";});
     var holder;
     if(isClone){
       holder=document.createElement("div");holder.className="slide-ph";holder.setAttribute("aria-hidden","true");
@@ -1281,32 +1333,78 @@ function wireFavBtn(btn,p,after){
 "use strict";
 /* 大图卡片：与 0.2.5 平铺版一致——单张大图占满卡片宽度，默认优化后，
    点图 0.5 秒交叉淡化切原图 / 优化后；点卡片其他区域或「查看详情」滑进详情层。 */
+/* ---------- 加载优化（0.2.16）：双层图的按需加载与失败重试 ----------
+   cardSeq 在每次 renderLists 开头归零：首屏前 2 张卡 eager + fetchpriority=high，其余 lazy + decoding=async。
+   wireSwapImages：after 层在卡片里用缩略图、详情里用全尺寸图（进详情才请求）；
+   before 层（示例原图）初始不带 src、不发出任何请求，第一次点「点击看原图」时才由 ensureBefore() 加载，
+   加载成功才交叉淡化切过去，失败显示明确的失败占位并可点按重试；加载过一次后点回优化后不再重复请求。 */
+var cardSeq=0;
+function wireSwapImages(btn,afterImg,beforeImg){
+  var fb=btn.querySelector('[data-role="img-fallback"]');
+  var ld=btn.querySelector('[data-role="img-loading"]');
+  function visibleImg(){return btn.classList.contains("show-before")?beforeImg:afterImg;}
+  function showFb(){if(fb)fb.hidden=false;}
+  function hideFb(){if(fb)fb.hidden=true;}
+  function showLd(v){if(ld)ld.hidden=!v;}
+  afterImg.addEventListener("load",function(){if(visibleImg()===afterImg)hideFb();});
+  afterImg.addEventListener("error",function(){if(visibleImg()===afterImg)showFb();});
+  beforeImg.addEventListener("load",function(){if(visibleImg()===beforeImg)hideFb();});
+  beforeImg.addEventListener("error",function(){if(visibleImg()===beforeImg&&beforeImg.getAttribute("src"))showFb();});
+  if(fb)fb.addEventListener("click",function(e){
+    e.stopPropagation();hideFb();
+    var img=visibleImg();var src=img.getAttribute("src")||img.getAttribute("data-lazy-src");if(!src)return;
+    img.removeAttribute("src");
+    setTimeout(function(){img.src=src;},40);
+  });
+  return{
+    ensureBefore:function(done){
+      if(beforeImg.getAttribute("src")){done(true);return;}
+      var src=beforeImg.getAttribute("data-lazy-src");if(!src){done(false);return;}
+      showLd(true);
+      function cleanup(){beforeImg.removeEventListener("load",onL);beforeImg.removeEventListener("error",onE);}
+      function onL(){cleanup();showLd(false);done(true);}
+      function onE(){cleanup();showLd(false);beforeImg.removeAttribute("src");done(false);}
+      beforeImg.addEventListener("load",onL);beforeImg.addEventListener("error",onE);
+      beforeImg.src=src;
+    },
+    fail:function(){showFb();}
+  };
+}
 function buildCard(p){
   var card=document.createElement("article");card.className="card";
   var prev=effectivePreview(p);
   var sample=sampleFor(p);
   var showBefore=!!state.cardModes[p.id];
+  var prio=cardSeq++;var eager=prio<2;
   card.innerHTML='<div class="card-head"><div class="card-title"><h3>'+esc(p.name)+'</h3></div>'
     +favBtnHTML(p)+"</div>"
     +'<p class="tagline">'+esc(p.tagline)+'</p>'
     +'<div class="tagrow">'+tagChips(p)+"</div>"
     +'<figure class="bigfig"><button type="button" class="bigimg'+(showBefore?" show-before":"")+'" data-act="swap" aria-pressed="'+(showBefore?"true":"false")+'" aria-label="'+esc(p.name)+' 示例大图，当前为'+(showBefore?"原图":"优化后")+'，点击切换">'
-    +'<img class="img-after" src="'+esc(prev)+'" alt="'+esc(p.code)+' 优化后成片" loading="lazy">'
-    +'<img class="img-before" src="'+esc(sample.img)+'" alt="" loading="lazy">'
+    +'<img class="img-after" src="'+esc(thumbOf(prev))+'" alt="'+esc(p.code)+' 优化后成片" loading="'+(eager?"eager":"lazy")+'" decoding="async"'+(eager?' fetchpriority="high"':"")+'>'
+    +'<img class="img-before" '+(showBefore?'src="'+esc(thumbOf(sample.img))+'" ':"")+'data-lazy-src="'+esc(thumbOf(sample.img))+'" alt="" decoding="async">'
+    +'<span class="img-loading" data-role="img-loading" hidden>原图加载中…</span>'
+    +'<span class="img-fallback" data-role="img-fallback" hidden>图片加载失败<span class="fb-retry">点此重试</span></span>'
     +'<span class="badge" data-role="state-badge">'+(showBefore?"原图":"优化后")+'</span>'
     +'<span class="swap-hint" data-role="swap-hint">'+(showBefore?"点击看优化后":"点击看原图")+'</span></button>'
     +'<figcaption><span>'+esc(sample.label)+' · '+esc(p.name)+'套用效果 · '+esc(p.region)+' · '+esc(p.colorType)+'</span></figcaption></figure>'
     +'<div class="ver-line"><span>版本代码</span><span class="vcode">'+esc(vcode(p))+"</span></div>"
     +'<button type="button" class="detail-link" data-act="detail">查看详情 <span class="chev">›</span></button>';
   var swapBtn=card.querySelector('[data-act="swap"]');
-  swapBtn.addEventListener("click",function(e){
-    e.stopPropagation();
-    var nowBefore=!state.cardModes[p.id];state.cardModes[p.id]=nowBefore;
+  var swapApi=wireSwapImages(swapBtn,swapBtn.querySelector(".img-after"),swapBtn.querySelector(".img-before"));
+  function applyMode(nowBefore){
+    state.cardModes[p.id]=nowBefore;
     swapBtn.classList.toggle("show-before",nowBefore);
     swapBtn.setAttribute("aria-pressed",nowBefore?"true":"false");
     swapBtn.setAttribute("aria-label",p.name+" 示例大图，当前为"+(nowBefore?"原图":"优化后")+"，点击切换");
     swapBtn.querySelector('[data-role="state-badge"]').textContent=nowBefore?"原图":"优化后";
     swapBtn.querySelector('[data-role="swap-hint"]').textContent=nowBefore?"点击看优化后":"点击看原图";
+  }
+  swapBtn.addEventListener("click",function(e){
+    e.stopPropagation();
+    var nowBefore=!state.cardModes[p.id];
+    if(nowBefore){swapApi.ensureBefore(function(ok){if(ok)applyMode(true);else swapApi.fail();});}
+    else applyMode(false);
   });
   wireFavBtn(card.querySelector('[data-act="fav"]'),p);
   card.querySelector('[data-act="detail"]').addEventListener("click",function(){openDetail(p);});
@@ -1337,6 +1435,7 @@ function buildUserStyleCard(us){
   return card;
 }
 function renderLists(){
+  cardSeq=0;/* 首屏优先计数归零：本次渲染的前 2 张卡 eager + 高优先级，其余懒加载（0.2.16） */
   /* 浏览 */
   var wrap=$("browse-groups");wrap.innerHTML="";
   var searching=state.search.trim()!=="";
@@ -1416,9 +1515,12 @@ function openDetail(p){
   var sample=sampleFor(p);
   var showBefore=false;
   var body=$("detail-body");
+  /* 详情大图（0.2.16）：优化后用全尺寸原图——只在点进详情时才请求；示例原图层不带 src，点「点击看原图」时才按需加载全尺寸原图 */
   body.innerHTML='<figure class="bigfig detail-hero"><button type="button" class="bigimg" data-role="dswap" aria-pressed="false" aria-label="'+esc(p.name)+' 示例大图，当前为优化后，点击切换">'
-    +'<img class="img-after" src="'+esc(prev)+'" alt="'+esc(p.code)+' 优化后成片">'
-    +'<img class="img-before" src="'+esc(sample.img)+'" alt="">'
+    +'<img class="img-after" src="'+esc(prev)+'" alt="'+esc(p.code)+' 优化后成片" decoding="async">'
+    +'<img class="img-before" data-lazy-src="'+esc(sample.img)+'" alt="" decoding="async">'
+    +'<span class="img-loading" data-role="img-loading" hidden>原图加载中…</span>'
+    +'<span class="img-fallback" data-role="img-fallback" hidden>图片加载失败<span class="fb-retry">点此重试</span></span>'
     +'<span class="badge" data-role="state-badge">优化后</span>'
     +'<span class="swap-hint" data-role="swap-hint">点击看原图</span></button>'
     +'<figcaption><span>'+esc(sample.label)+' · '+esc(p.name)+'套用效果</span></figcaption></figure>'
@@ -1430,13 +1532,18 @@ function openDetail(p){
     +'<button type="button" class="try-big-btn" data-role="try">用这个风格试我的照片</button>'
     +'<div class="detail-favrow">'+favBtnHTML(p,"detail-fav")+'<span data-role="fav-tip">'+(isFav(p.id)?"已收藏，可在「我的 · 通用设置」里查看":"点爱心收藏这个风格")+"</span></div>";
   var swapBtn=body.querySelector('[data-role="dswap"]');
-  swapBtn.addEventListener("click",function(){
-    showBefore=!showBefore;
+  var dSwapApi=wireSwapImages(swapBtn,swapBtn.querySelector(".img-after"),swapBtn.querySelector(".img-before"));
+  function applyDetailMode(nowBefore){
+    showBefore=nowBefore;
     swapBtn.classList.toggle("show-before",showBefore);
     swapBtn.setAttribute("aria-pressed",showBefore?"true":"false");
     swapBtn.setAttribute("aria-label",p.name+" 示例大图，当前为"+(showBefore?"原图":"优化后")+"，点击切换");
     swapBtn.querySelector('[data-role="state-badge"]').textContent=showBefore?"原图":"优化后";
     swapBtn.querySelector('[data-role="swap-hint"]').textContent=showBefore?"点击看优化后":"点击看原图";
+  }
+  swapBtn.addEventListener("click",function(){
+    if(!showBefore){dSwapApi.ensureBefore(function(ok){if(ok)applyDetailMode(true);else dSwapApi.fail();});}
+    else applyDetailMode(false);
   });
   wireFavBtn(body.querySelector(".detail-fav"),p,function(on){
     body.querySelector('[data-role="fav-tip"]').textContent=on?"已收藏，可在「我的 · 通用设置」里查看":"点爱心收藏这个风格";
@@ -1520,9 +1627,9 @@ $("agree-toggle").addEventListener("click",function(){
   this.textContent=open?"收起全文":"展开全文";
 });
 
-var SITE_VERSION="0.2.15";
+var SITE_VERSION="0.2.17";
 function renderLibrary(){
-  $("lib-sub").textContent="网站整体版本：极简版 "+SITE_VERSION+" · 更新记录：0.2.15（2026-10-28）邀请码与用户协议新增 + 折叠组版：「我的」一级页在「通用设置」「创意投稿」之外再加两个菜单入口——「邀请码」「用户协议」，一级页不铺开具体内容；点「邀请码」进二级页（带「‹ 我的」返回），内含两个默认收起的折叠组：邀请码填入（输入框 + 提交，提交后仅本地保存并显示已填入状态，明确注明联网验证待接入、当前仅本地保存未联网验证、未确认是否有效；不编造真实可用码、不假装已验证通过）与邀请码申请（姓名 / 昵称选填、联系方式、申请理由，提交后仅本地保存并提示待审核、未联网发送，另提供复制申请内容按钮）；点「用户协议」进二级页，先显示草案说明与摘要、点「展开全文」才平滑展开完整协议全文，协议为草案模板（开头注明正式公开发布或商用前建议请律师审核），包含服务说明（仅提供图片优化 / 风格模拟预览，不提供摄影、设计、广告等专业服务）、使用范围（仅限个人、非商业用途，不得将软件、风格、生成图片用于商业用途、不得转售、不得用于广告 / 商品 / 宣传等商业场景，开发者不授予任何商业授权）、生成图片所有权（原图与生成图片所有权均归用户，开发者不侵占、不主张所有权、不用于商业、不擅自使用用户图片，本地处理不上传时开发者无法访问）、用户责任、知识产权、免责声明、隐私、未成年人、禁止行为、服务变更与终止、法律适用与争议解决（适用中华人民共和国法律）、协议变更与生效（使用即表示同意）；通用设置二级页改为手风琴折叠组：字体大小、页面颜色、减少动效、试照片默认强度、清除本地数据、关于与版本、我的收藏、资料库、用户反馈各组默认全部收起，只显示一行标题与当前值（如字体大小：标准、页面颜色：跟随系统），点标题行才平滑展开具体控件 / 列表 / 表单，再点收起，进页不再把所有内容铺开；其余 0.2.14 功能全部保留；0.2.14（2026-10-28）「我的」页分级收起版：「我的」一级页只显示头像、名字与名字下方一行小字 ID（含复制），下面只放「通用设置」「创意投稿」两个入口，不再铺开字体、颜色、动效、默认强度、清除、关于、收藏列表、反馈表单与我的风格列表，顶部大篇幅本地保存说明已删除，全站不再反复强调本地保存、只在「关于与版本」里留一行小字说明；点「通用设置」进二级页（带「‹ 我的」返回），里面收齐字体大小四档（实时全站生效）、页面颜色三档（白色 / 黑色 / 跟随系统）、减少动效开关、试照片默认强度（50 / 75 / 100，默认 75%，试照片打开时与设置选中档一致、无 80% 档外值）、清除本地数据（二次确认）、关于与版本与隐私说明，以及我的收藏、用户反馈、资料库的入口 / 内容；点「创意投稿」进二级页（带「‹ 我的」返回），里面是上传个人风格表单（选图、风格名、简介、提交）与已上传的我的风格小卡片（可删除），上传后同步到浏览页自定义组、与芝加哥并列并标明用户上传、不进 19 个大师风格，表单选图行上方不用指向风格名输入框的标签、风格名标签只保留一处；其余 0.2.13 功能全部保留；0.2.13（2026-10-28）新增「我的」页版：底部导航第四项由「收藏」改为「我的」，导航变为浏览 / 风光 / 人像 / 我的；原收藏功能移入「我的」页做「我的收藏」一节（默认收藏芝加哥不变，点卡片仍进详情），资料库入口随之移入「我的」页；「我的」页顶部为用户信息区：默认头像可点选相册图更换、名字可改、首次打开自动生成本地 ID（如 BE-XXXXXX）显示在名字下方并可一键复制，页面明确注明本页为静态页、无服务器账号，头像 / 名字 / ID / 收藏 / 设置 / 上传风格只保存在访客自己浏览器本地、不跨设备同步、不上传服务器，本地 ID 非登录账号；新增「通用设置」一节：字体大小四档（小 / 标准 / 大 / 特大，实时改全站字号并本地记住）、页面颜色三档（白色 / 黑色 / 跟随系统，与右上角深浅切换按钮同步）、减少动效开关、试照片默认强度（50% / 75% / 100%）、清除本地数据（操作前二次确认）、关于与版本（当前版本与隐私说明：照片本地处理不上传）；新增「用户反馈」一节（框架）：反馈类型（功能建议 / 显示问题 / 风格问题 / 其他）、内容、选填联系方式、提交按钮——静态页目前没有可用的反馈服务器，提交后只本地保存并明确提示「联网反馈功能待接入，当前仅本地保存、尚未发送给开发者」，另提供「复制反馈内容」按钮，不假装已联网发送；新增「我的风格」一节：可从相册选一张风格示例图、填风格名与一句话简介，提交后本地保存并以小卡片展示（可删除），同时出现在浏览页自定义组与芝加哥并列并标明用户上传，不自动上架到 19 个大师风格；本地数据按未来联网版 / App 可迁移的结构保存：用户信息、收藏、通用设置、上传风格、反馈各自使用独立稳定的本地存储键与固定字段，本地 ID 作为设备 ID 字段保留（以后可映射 / 绑定服务器账号 ID），头像与上传风格图片保留原图数据与元数据（文件名 / 类型 / 字节数 / 宽高 / 时间）不做不可逆压缩裁剪，反馈按以后接口的字段形状（类型 / 内容 / 联系方式 / 时间 / 版本 / 设备信息）本地保存；其余 0.2.12 功能全部保留；0.2.12（2026-10-28）PT-04 浓彩成片换图版：仅更换 PT-04「浓彩」的人像成片，换图原因：瞳孔颜色修复——旧成片瞳孔颜色奇怪，新成片为干净照片（不带卡片 UI、不带文字、不带爱心），中央穿灰色卫衣的年轻男子面貌、衣服、位置、神态不变，背景人群构图不变，浓烈色彩人文肖像风格保留，瞳孔为自然深棕 / 黑色、无奇怪彩色瞳孔；卡片、详情页与试照片所用的浓彩成片已统一换为新图；PT-04 版本代码按规则由 PT-04-V1.2.0 升为 PT-04-V1.2.1，资料库 PT-04 条目同步记录该换图原因；卡片标题仍只显示短名「浓彩」、不显示代码，版本代码只在版本行 / 详情版本信息 / 资料库显示；其余 18 个风格、其他功能全部不变，其余 0.2.11 功能全部保留；0.2.11（2026-10-28）导航尺寸同步修复版：修复底部胶囊导航选中指示块与胶囊 / 按钮尺寸错位一拍的问题——根源是切换缩小 / 恢复的同一瞬间就去量按钮尺寸，量到的还是动画开始前的旧尺寸（缩小后指示块仍是正常态的大尺寸、恢复后仍是缩小态的小尺寸）；改为先以无动画方式按目标态的最终布局量出按钮尺寸、定好指示块的动画目标，再切换状态，让指示块与胶囊、按钮同帧、同 0.38s、同缓动一起变到目标态：缩小态（仅图标）指示块等于缩小态按钮的实际宽高，正常态（图标 + 文字）等于正常态按钮的实际宽高；胶囊自身宽度也随状态同步变化（缩小态更窄、正常态更宽，与指示块同一次动画）；胶囊动画结束后按按钮实际尺寸再精确对齐一次兜底；上滑缩小、下滑超约 100px 阈值恢复、回到顶部恢复、切页面、窗口尺寸变化时都立即按当前目标态重算指示块位置与尺寸，不用缓存的上一状态尺寸；左右滑动时指示实时跟随手指、松手按最近项确认才跳转、边缘橡皮筋平滑保持不变；其余 0.2.10 功能全部保留；0.2.10（2026-10-28）导航边缘平滑 + 试照片点击转换版：底部胶囊导航滑动到最左（浏览）/ 最右（收藏）两端时改平滑——拖动越过两端后指示块不再硬顶住，改带阻力的橡皮筋跟随（越界部分约 0.32 倍平滑跟随一小段），指示跟随手指的缓动放缓，松手落在两端项时 settle 改用约 0.55s 的更平缓缓动滑到该项，去掉硬性弹吸与过冲，不再突然跳变或卡住；中间项的滑动跟随、松手按最近项确认才跳转保持不变；试照片彻底去掉前后对比分割线、分隔线把手与「前后对比」滑轮，不再左右分屏对比，改回整图点击转换：点一下生成图即以约 0.5 秒交叉淡化在原图与处理后之间切换，再点切回，图上标签同步显示「原图 / 处理后」、右下角提示「点击看原图 / 点击看处理后」；风格强度滑轮保留，仍实时逐像素出图（0% 约原图、100% 满风格），点击切换是在当前强度下整图切换，两者不冲突；下载与长按保存不变；其余 0.2.9 功能全部保留；0.2.9（2026-10-28）胶囊导航滑动选中 + 缩小态只留图标版：底部胶囊加独立的玻璃选中指示块，按住左右滑动时指示实时平滑跟随手指、主页面不跳转，松手按最近的导航项确认后指示滑到该项、页面才跳转，滑动很小仍在原项上时只滑回原项不跳转，轻点同样带指示滑动动画跳转；上滑缩小态改为隐去「浏览 / 风光 / 人像 / 收藏」文字标签（平滑收起），图标保持约 23px 接近正常尺寸，胶囊主要靠去掉文字行变矮，恢复时文字平滑淡入回来；缩小态下图标仍可点、仍可左右滑动选中、松手才跳转，与自动缩小 / 下滑超阈值恢复动画互不冲突；其余 0.2.8 功能全部保留；0.2.8（2026-10-28）点击切换 + 导航自动缩小版：试照片前后对比支持轻点切换——点图片本身或分隔线把手即可在原图与处理后之间切换，分隔线约 380ms 平滑滑到 0% / 100%，左右标签、滑轮与无障碍读数同步；拖动超过约 10px 仍按拖动对比、轻点才切换，两者不冲突；底部胶囊导航在手指上滑（页面向下滚动）时自动等比缩小到约 0.76 倍（高度、图标、文字一起收，仍可见可点、不消失），手指下滑需累计超过约 100px 才平滑恢复正常尺寸，小幅下滑与来回抖动不触发反复缩放，回到页面顶部也恢复，缩放动画约 380ms 缓动、滚动监听用 rAF 节流；其余 0.2.7 功能全部保留；0.2.7（2026-10-28）胶囊导航 + 双主题 + 水印版：底部导航由满宽长条改为悬浮居中的胶囊药丸形（液态玻璃：半透明、背景模糊、高光边、柔和阴影，与内容留边距并适配安全区）；卡片标题只显示短名、不再显示风格代码，代码与版本代码只保留在资料库与详情版本信息里；标题行旁重复的「地域 · 色彩」移到大图下方小字说明行（与示例图说明合并）；卡片容器背景透明度约 70%（液态玻璃，背景水印可隐约透出，大图本身保持 100% 不透明、文字保持清晰）；新增深色 / 浅色双主题（右上角玻璃圆钮切换，默认跟随系统，切换后本地记住）；全站背景加浅浅的「BE MUSTER」大字斜排水印，深浅主题下都只是隐约可见；其余 0.2.6 功能全部保留；0.2.6（2026-10-28）Apple Music 风格试验版：按 Apple Music 设计语言做浅分级——底部毛玻璃导航常驻（浏览 / 风光 / 人像 / 收藏），浏览页为大标题 + 胶囊搜索 + 示例图循环轮播 + 按风光 / 人像 / 自定义分组的竖排大图卡片，风光 / 人像页为竖排大图列表，点卡片从右侧滑进一层风格详情（大图点切换原图 / 优化后、版本代码、红色爱心收藏、「用这个风格试我的照片」大按钮，左上角返回或右滑关闭即回原位），详情再进全屏试照片（正在播放式，点 ✕ 回详情）；风格展示全程保留 0.2.5 的单张大图卡片式（大图占满卡片宽度、点图 0.5 秒交叉淡化），不缩成小方图；资料库移到收藏页顶部入口；19 个短名、代码、标签、微简介、版本代码、默认收藏芝加哥、本地收藏记忆、本地逐像素处理、筛选、搜索、循环轮播、毛玻璃、下载与长按保存全部保留；不好可回档到 0.2.5 平铺版；0.2.5（2026-10-28）已回档平铺版：去掉 0.2.4 层级试验结构，恢复一级页面平铺浏览；0.2.4（2026-10-28）层级试验版已跳过，不再保留：曾把页面拆为多层跳转，因分隔后使用不便而回档；0.2.3（2026-10-28）重做试照片处理页：本地逐像素计算、可拖动对比分割线与滑轮双向同步、风格强度实时出图、下载与长按保存成品图；0.2.2（2026-10-28）风格名改为 ins 式短名、顶部四页签玻璃滑块、每卡收藏按钮并本地记住、默认收藏芝加哥；0.2.1（2026-10-28）卡片改单张大图、点击交叉淡化切换原图/优化后；0.2.0（2026-10-28）风格去作者名改名、原图/优化对比、轮播循环、新增版本代码与资料库；0.1.0 极简版首版。版本代码规则：风格代码-V主.次.修订，风格数据每改一次对应递增，网站整体版本同步更新。";
+  $("lib-sub").textContent="网站整体版本：极简版 "+SITE_VERSION+" · 更新记录：0.2.17（2026-10-28）缩略图导出修复版：修复导出到 GitHub Pages 后 thumb 缩略图未解析的问题——0.2.16 的缩略图地址由 thumbOf() 在运行时按字符串拼接推导，index.html 里没有任何 assets/thumb-*.webp 的字面引用，导出 / 上传扫描按字面引用收集资源时会漏掉全部 31 张缩略图，GitHub Pages 上卡片图与轮播示例图便请求不到；本版把 31 张缩略图改成显式映射表 THUMB_MAP，全部 assets/thumb-*.webp 路径以字面量写在源码中，thumbOf() 优先查表、查不到才回退推导，导出扫描可完整收集，GitHub Pages 能用上 0.2.16 的缩略图；缩略图文件本身、卡片 / 轮播用图、原图按需加载、失败重试占位与相对路径 assets/... 全部不变，风格版本代码不变；其余 0.2.16 功能全部保留；0.2.16（2026-10-28）加载优化版（缩略图 + 按需加载原图）：根因是原图太大 + 双层图同时加载——卡片图此前直接用 1904–2080px 原尺寸图（单张最高约 1.1MB），且每张卡叠放预览图与示例原图两层、两层都先加载，慢网络下懒加载迟迟不到只剩灰色占位；本版改法：① 新增 31 张 960px 宽 WebP 缩略图（assets/thumb-*.webp，单张 ≤150KB，人像约 31–63KB、风光约 87–149KB），卡片列表的优化后图一律改用缩略图，视觉与原图无明显差别；② 示例原图层不再预加载（不带 src），点「点击看原图」时才按需加载其缩略图，加载成功才交叉淡化切过去，点回优化后不重复加载；③ 原尺寸大图只在点进详情（详情优化后图）、点开放大（轮播原图）时才请求，城市版预览图只在切换示例 / 进详情时才请求、首屏不全量拉，详情的示例原图同样点「点击看原图」才加载全尺寸原图；④ 顶部轮播改用示例图缩略图（当前张优先加载、其余懒加载），首屏前 2 张卡 eager + fetchpriority=high，其余卡片保持 loading=lazy、decoding=async，图片沿用 CSS 宽高比（16/10）占位避免布局跳动；⑤ 缩略图或原图层加载失败时显示明确的「图片加载失败 · 点此重试」占位（点按即重新请求），不再一直灰块；⑥ 图片相对路径 assets/... 全部不变（不改域名根路径），19 个风格、短名、代码、标签、微简介、版本代码、底部胶囊导航、滑入详情、生图点击转换、收藏、逐像素处理、下载与长按保存、我的页、邀请码、用户协议、筛选、搜索、循环轮播、资料库全部保留，风格版本代码不变；其余 0.2.15 功能全部保留；0.2.15（2026-10-28）邀请码与用户协议新增 + 折叠组版：「我的」一级页在「通用设置」「创意投稿」之外再加两个菜单入口——「邀请码」「用户协议」，一级页不铺开具体内容；点「邀请码」进二级页（带「‹ 我的」返回），内含两个默认收起的折叠组：邀请码填入（输入框 + 提交，提交后仅本地保存并显示已填入状态，明确注明联网验证待接入、当前仅本地保存未联网验证、未确认是否有效；不编造真实可用码、不假装已验证通过）与邀请码申请（姓名 / 昵称选填、联系方式、申请理由，提交后仅本地保存并提示待审核、未联网发送，另提供复制申请内容按钮）；点「用户协议」进二级页，先显示草案说明与摘要、点「展开全文」才平滑展开完整协议全文，协议为草案模板（开头注明正式公开发布或商用前建议请律师审核），包含服务说明（仅提供图片优化 / 风格模拟预览，不提供摄影、设计、广告等专业服务）、使用范围（仅限个人、非商业用途，不得将软件、风格、生成图片用于商业用途、不得转售、不得用于广告 / 商品 / 宣传等商业场景，开发者不授予任何商业授权）、生成图片所有权（原图与生成图片所有权均归用户，开发者不侵占、不主张所有权、不用于商业、不擅自使用用户图片，本地处理不上传时开发者无法访问）、用户责任、知识产权、免责声明、隐私、未成年人、禁止行为、服务变更与终止、法律适用与争议解决（适用中华人民共和国法律）、协议变更与生效（使用即表示同意）；通用设置二级页改为手风琴折叠组：字体大小、页面颜色、减少动效、试照片默认强度、清除本地数据、关于与版本、我的收藏、资料库、用户反馈各组默认全部收起，只显示一行标题与当前值（如字体大小：标准、页面颜色：跟随系统），点标题行才平滑展开具体控件 / 列表 / 表单，再点收起，进页不再把所有内容铺开；其余 0.2.14 功能全部保留；0.2.14（2026-10-28）「我的」页分级收起版：「我的」一级页只显示头像、名字与名字下方一行小字 ID（含复制），下面只放「通用设置」「创意投稿」两个入口，不再铺开字体、颜色、动效、默认强度、清除、关于、收藏列表、反馈表单与我的风格列表，顶部大篇幅本地保存说明已删除，全站不再反复强调本地保存、只在「关于与版本」里留一行小字说明；点「通用设置」进二级页（带「‹ 我的」返回），里面收齐字体大小四档（实时全站生效）、页面颜色三档（白色 / 黑色 / 跟随系统）、减少动效开关、试照片默认强度（50 / 75 / 100，默认 75%，试照片打开时与设置选中档一致、无 80% 档外值）、清除本地数据（二次确认）、关于与版本与隐私说明，以及我的收藏、用户反馈、资料库的入口 / 内容；点「创意投稿」进二级页（带「‹ 我的」返回），里面是上传个人风格表单（选图、风格名、简介、提交）与已上传的我的风格小卡片（可删除），上传后同步到浏览页自定义组、与芝加哥并列并标明用户上传、不进 19 个大师风格，表单选图行上方不用指向风格名输入框的标签、风格名标签只保留一处；其余 0.2.13 功能全部保留；0.2.13（2026-10-28）新增「我的」页版：底部导航第四项由「收藏」改为「我的」，导航变为浏览 / 风光 / 人像 / 我的；原收藏功能移入「我的」页做「我的收藏」一节（默认收藏芝加哥不变，点卡片仍进详情），资料库入口随之移入「我的」页；「我的」页顶部为用户信息区：默认头像可点选相册图更换、名字可改、首次打开自动生成本地 ID（如 BE-XXXXXX）显示在名字下方并可一键复制，页面明确注明本页为静态页、无服务器账号，头像 / 名字 / ID / 收藏 / 设置 / 上传风格只保存在访客自己浏览器本地、不跨设备同步、不上传服务器，本地 ID 非登录账号；新增「通用设置」一节：字体大小四档（小 / 标准 / 大 / 特大，实时改全站字号并本地记住）、页面颜色三档（白色 / 黑色 / 跟随系统，与右上角深浅切换按钮同步）、减少动效开关、试照片默认强度（50% / 75% / 100%）、清除本地数据（操作前二次确认）、关于与版本（当前版本与隐私说明：照片本地处理不上传）；新增「用户反馈」一节（框架）：反馈类型（功能建议 / 显示问题 / 风格问题 / 其他）、内容、选填联系方式、提交按钮——静态页目前没有可用的反馈服务器，提交后只本地保存并明确提示「联网反馈功能待接入，当前仅本地保存、尚未发送给开发者」，另提供「复制反馈内容」按钮，不假装已联网发送；新增「我的风格」一节：可从相册选一张风格示例图、填风格名与一句话简介，提交后本地保存并以小卡片展示（可删除），同时出现在浏览页自定义组与芝加哥并列并标明用户上传，不自动上架到 19 个大师风格；本地数据按未来联网版 / App 可迁移的结构保存：用户信息、收藏、通用设置、上传风格、反馈各自使用独立稳定的本地存储键与固定字段，本地 ID 作为设备 ID 字段保留（以后可映射 / 绑定服务器账号 ID），头像与上传风格图片保留原图数据与元数据（文件名 / 类型 / 字节数 / 宽高 / 时间）不做不可逆压缩裁剪，反馈按以后接口的字段形状（类型 / 内容 / 联系方式 / 时间 / 版本 / 设备信息）本地保存；其余 0.2.12 功能全部保留；0.2.12（2026-10-28）PT-04 浓彩成片换图版：仅更换 PT-04「浓彩」的人像成片，换图原因：瞳孔颜色修复——旧成片瞳孔颜色奇怪，新成片为干净照片（不带卡片 UI、不带文字、不带爱心），中央穿灰色卫衣的年轻男子面貌、衣服、位置、神态不变，背景人群构图不变，浓烈色彩人文肖像风格保留，瞳孔为自然深棕 / 黑色、无奇怪彩色瞳孔；卡片、详情页与试照片所用的浓彩成片已统一换为新图；PT-04 版本代码按规则由 PT-04-V1.2.0 升为 PT-04-V1.2.1，资料库 PT-04 条目同步记录该换图原因；卡片标题仍只显示短名「浓彩」、不显示代码，版本代码只在版本行 / 详情版本信息 / 资料库显示；其余 18 个风格、其他功能全部不变，其余 0.2.11 功能全部保留；0.2.11（2026-10-28）导航尺寸同步修复版：修复底部胶囊导航选中指示块与胶囊 / 按钮尺寸错位一拍的问题——根源是切换缩小 / 恢复的同一瞬间就去量按钮尺寸，量到的还是动画开始前的旧尺寸（缩小后指示块仍是正常态的大尺寸、恢复后仍是缩小态的小尺寸）；改为先以无动画方式按目标态的最终布局量出按钮尺寸、定好指示块的动画目标，再切换状态，让指示块与胶囊、按钮同帧、同 0.38s、同缓动一起变到目标态：缩小态（仅图标）指示块等于缩小态按钮的实际宽高，正常态（图标 + 文字）等于正常态按钮的实际宽高；胶囊自身宽度也随状态同步变化（缩小态更窄、正常态更宽，与指示块同一次动画）；胶囊动画结束后按按钮实际尺寸再精确对齐一次兜底；上滑缩小、下滑超约 100px 阈值恢复、回到顶部恢复、切页面、窗口尺寸变化时都立即按当前目标态重算指示块位置与尺寸，不用缓存的上一状态尺寸；左右滑动时指示实时跟随手指、松手按最近项确认才跳转、边缘橡皮筋平滑保持不变；其余 0.2.10 功能全部保留；0.2.10（2026-10-28）导航边缘平滑 + 试照片点击转换版：底部胶囊导航滑动到最左（浏览）/ 最右（收藏）两端时改平滑——拖动越过两端后指示块不再硬顶住，改带阻力的橡皮筋跟随（越界部分约 0.32 倍平滑跟随一小段），指示跟随手指的缓动放缓，松手落在两端项时 settle 改用约 0.55s 的更平缓缓动滑到该项，去掉硬性弹吸与过冲，不再突然跳变或卡住；中间项的滑动跟随、松手按最近项确认才跳转保持不变；试照片彻底去掉前后对比分割线、分隔线把手与「前后对比」滑轮，不再左右分屏对比，改回整图点击转换：点一下生成图即以约 0.5 秒交叉淡化在原图与处理后之间切换，再点切回，图上标签同步显示「原图 / 处理后」、右下角提示「点击看原图 / 点击看处理后」；风格强度滑轮保留，仍实时逐像素出图（0% 约原图、100% 满风格），点击切换是在当前强度下整图切换，两者不冲突；下载与长按保存不变；其余 0.2.9 功能全部保留；0.2.9（2026-10-28）胶囊导航滑动选中 + 缩小态只留图标版：底部胶囊加独立的玻璃选中指示块，按住左右滑动时指示实时平滑跟随手指、主页面不跳转，松手按最近的导航项确认后指示滑到该项、页面才跳转，滑动很小仍在原项上时只滑回原项不跳转，轻点同样带指示滑动动画跳转；上滑缩小态改为隐去「浏览 / 风光 / 人像 / 收藏」文字标签（平滑收起），图标保持约 23px 接近正常尺寸，胶囊主要靠去掉文字行变矮，恢复时文字平滑淡入回来；缩小态下图标仍可点、仍可左右滑动选中、松手才跳转，与自动缩小 / 下滑超阈值恢复动画互不冲突；其余 0.2.8 功能全部保留；0.2.8（2026-10-28）点击切换 + 导航自动缩小版：试照片前后对比支持轻点切换——点图片本身或分隔线把手即可在原图与处理后之间切换，分隔线约 380ms 平滑滑到 0% / 100%，左右标签、滑轮与无障碍读数同步；拖动超过约 10px 仍按拖动对比、轻点才切换，两者不冲突；底部胶囊导航在手指上滑（页面向下滚动）时自动等比缩小到约 0.76 倍（高度、图标、文字一起收，仍可见可点、不消失），手指下滑需累计超过约 100px 才平滑恢复正常尺寸，小幅下滑与来回抖动不触发反复缩放，回到页面顶部也恢复，缩放动画约 380ms 缓动、滚动监听用 rAF 节流；其余 0.2.7 功能全部保留；0.2.7（2026-10-28）胶囊导航 + 双主题 + 水印版：底部导航由满宽长条改为悬浮居中的胶囊药丸形（液态玻璃：半透明、背景模糊、高光边、柔和阴影，与内容留边距并适配安全区）；卡片标题只显示短名、不再显示风格代码，代码与版本代码只保留在资料库与详情版本信息里；标题行旁重复的「地域 · 色彩」移到大图下方小字说明行（与示例图说明合并）；卡片容器背景透明度约 70%（液态玻璃，背景水印可隐约透出，大图本身保持 100% 不透明、文字保持清晰）；新增深色 / 浅色双主题（右上角玻璃圆钮切换，默认跟随系统，切换后本地记住）；全站背景加浅浅的「BE MUSTER」大字斜排水印，深浅主题下都只是隐约可见；其余 0.2.6 功能全部保留；0.2.6（2026-10-28）Apple Music 风格试验版：按 Apple Music 设计语言做浅分级——底部毛玻璃导航常驻（浏览 / 风光 / 人像 / 收藏），浏览页为大标题 + 胶囊搜索 + 示例图循环轮播 + 按风光 / 人像 / 自定义分组的竖排大图卡片，风光 / 人像页为竖排大图列表，点卡片从右侧滑进一层风格详情（大图点切换原图 / 优化后、版本代码、红色爱心收藏、「用这个风格试我的照片」大按钮，左上角返回或右滑关闭即回原位），详情再进全屏试照片（正在播放式，点 ✕ 回详情）；风格展示全程保留 0.2.5 的单张大图卡片式（大图占满卡片宽度、点图 0.5 秒交叉淡化），不缩成小方图；资料库移到收藏页顶部入口；19 个短名、代码、标签、微简介、版本代码、默认收藏芝加哥、本地收藏记忆、本地逐像素处理、筛选、搜索、循环轮播、毛玻璃、下载与长按保存全部保留；不好可回档到 0.2.5 平铺版；0.2.5（2026-10-28）已回档平铺版：去掉 0.2.4 层级试验结构，恢复一级页面平铺浏览；0.2.4（2026-10-28）层级试验版已跳过，不再保留：曾把页面拆为多层跳转，因分隔后使用不便而回档；0.2.3（2026-10-28）重做试照片处理页：本地逐像素计算、可拖动对比分割线与滑轮双向同步、风格强度实时出图、下载与长按保存成品图；0.2.2（2026-10-28）风格名改为 ins 式短名、顶部四页签玻璃滑块、每卡收藏按钮并本地记住、默认收藏芝加哥；0.2.1（2026-10-28）卡片改单张大图、点击交叉淡化切换原图/优化后；0.2.0（2026-10-28）风格去作者名改名、原图/优化对比、轮播循环、新增版本代码与资料库；0.1.0 极简版首版。版本代码规则：风格代码-V主.次.修订，风格数据每改一次对应递增，网站整体版本同步更新。";
   var box=$("lib-list");box.innerHTML="";
   [["portrait","人像 PT-01～PT-10"],["landscape","风光 LS-01～LS-08 · 自定义 CU-01"]].forEach(function(g){
     var h=document.createElement("p");h.className="lib-group";h.textContent=g[1];box.appendChild(h);
