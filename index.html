@@ -1,0 +1,2270 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="color-scheme" content="light dark" />
+<link rel="icon" href="data:," />
+<title>BE MASTER Minimal</title>
+<script>
+/* 主题与通用设置：先读浏览器本地记住的选择（页面颜色三档：白色 / 黑色 / 跟随系统），
+   没有则跟随系统，必须在样式生效前定下来避免闪烁；字号档位与减少动效也一并先定下来 */
+(function(){try{
+  var mode=null,font="standard",motion=false;
+  var raw=localStorage.getItem("bemaster-minimal-settings");
+  if(raw){var s=JSON.parse(raw);if(s){mode=s.colorMode||null;font=s.fontSize||"standard";motion=!!s.reduceMotion;}}
+  if(mode!=="dark"&&mode!=="light"){mode=localStorage.getItem("bemaster-minimal-theme");}
+  var t=(mode==="dark"||mode==="light")?mode:((window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light");
+  document.documentElement.setAttribute("data-theme",t);
+  document.documentElement.setAttribute("data-font",font);
+  if(motion)document.documentElement.setAttribute("data-motion","reduce");
+}catch(e){document.documentElement.setAttribute("data-theme","light");}})();
+</script>
+<style>
+:root{
+  --bg:#f5f5f7; --text:#1d1d1f; --dim:#6e6e73; --faint:#86868b;
+  --surface:#ffffff; --fill:#e8e8ed; --fill2:#f0f0f3;
+  --card-bg:rgba(255,255,255,.7);
+  --hairline:rgba(0,0,0,.08);
+  --glass:rgba(255,255,255,.58); --glass-strong:rgba(255,255,255,.72);
+  --glass-border:rgba(255,255,255,.65); --glass-hi:rgba(255,255,255,.75);
+  --shadow:0 12px 40px rgba(0,0,0,.08), 0 2px 8px rgba(0,0,0,.04);
+  --shadow-sm:0 4px 18px rgba(0,0,0,.07);
+  --accent:#1d1d1f; --accent-text:#fff;
+  --am:#fa2d48;
+  --wash-a:rgba(255,196,130,.20); --wash-b:rgba(140,180,255,.18); --wash-c:rgba(190,230,200,.14);
+  color-scheme:light;
+}
+:root[data-theme="dark"]{
+  --bg:#0b0b0d; --text:#f5f5f7; --dim:#a1a1a6; --faint:#7c7c80;
+  --surface:#1c1c1e; --fill:#2c2c2e; --fill2:#242426;
+  --card-bg:rgba(28,28,30,.7);
+  --hairline:rgba(255,255,255,.12);
+  --glass:rgba(38,38,42,.55); --glass-strong:rgba(44,44,48,.68);
+  --glass-border:rgba(255,255,255,.16); --glass-hi:rgba(255,255,255,.22);
+  --shadow:0 12px 40px rgba(0,0,0,.45), 0 2px 8px rgba(0,0,0,.3);
+  --shadow-sm:0 4px 18px rgba(0,0,0,.35);
+  --accent:#f5f5f7; --accent-text:#1d1d1f;
+  --am:#ff375f;
+  --wash-a:rgba(255,170,90,.10); --wash-b:rgba(90,140,255,.10); --wash-c:rgba(120,220,160,.07);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue","PingFang SC","Microsoft YaHei",sans-serif;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+body::before{content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;
+  background:
+    radial-gradient(560px 380px at 12% -4%, var(--wash-a), transparent 70%),
+    radial-gradient(640px 420px at 96% 22%, var(--wash-b), transparent 70%),
+    radial-gradient(700px 500px at 50% 108%, var(--wash-c), transparent 70%);}
+/* 背景水印：浅浅的 BE MUSTER 大字斜排平铺，深浅主题下都只是隐约可见 */
+body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='480' height='330'%3E%3Ctext x='24' y='185' font-family='Helvetica Neue,Helvetica,Arial,sans-serif' font-size='56' font-weight='700' letter-spacing='5' fill='%238a8a8e' fill-opacity='0.075' transform='rotate(-16 240 165)'%3EBE MUSTER%3C/text%3E%3C/svg%3E");
+  background-size:480px 330px;background-repeat:repeat}
+button{font-family:inherit;cursor:pointer;color:inherit}
+img{display:block}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px calc(118px + env(safe-area-inset-bottom, 0px))}
+/* ---------- 液态玻璃 ---------- */
+.glass{
+  background:var(--glass);
+  -webkit-backdrop-filter:blur(22px) saturate(1.7);
+  backdrop-filter:blur(22px) saturate(1.7);
+  border:1px solid var(--glass-border);
+  box-shadow:inset 0 1px 0 var(--glass-hi), inset 0 -0.5px 0 rgba(0,0,0,.04), var(--shadow-sm);
+}
+@supports not ((backdrop-filter:blur(4px)) or (-webkit-backdrop-filter:blur(4px))){
+  .glass{background:var(--glass-strong)}
+}
+/* ---------- 头部大标题 ---------- */
+header.top{padding:40px 4px 4px}
+header.top h1{margin:0;font-size:34px;font-weight:700;letter-spacing:-.02em;line-height:1.12}
+header.top .sub{margin:6px 0 0;font-size:13px;font-weight:500;color:var(--dim);letter-spacing:.34em}
+header.top .intro{margin:10px 0 0;font-size:13px;color:var(--faint);line-height:1.6}
+.page-head{padding:40px 4px 4px}
+.page-head h2{margin:0;font-size:34px;font-weight:700;letter-spacing:-.02em;line-height:1.12}
+.page-head p{margin:8px 0 0;font-size:13px;color:var(--faint)}
+/* ---------- 页面切换 ---------- */
+.page{display:none}
+.page.active{display:block;animation:pageIn .45s cubic-bezier(.22,1,.36,1)}
+@keyframes pageIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+/* ---------- 搜索胶囊 + 筛选 ---------- */
+.searchrow{margin-top:18px;display:flex;align-items:center;gap:10px}
+.searchbox{position:relative;flex:1;min-width:0}
+.searchbox svg{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--faint);pointer-events:none}
+.searchbox input{width:100%;border:0;background:var(--fill);color:var(--text);border-radius:999px;padding:12px 38px 12px 38px;font-size:15px;outline:none;-webkit-appearance:none;appearance:none;box-shadow:inset 0 0 0 1px var(--hairline)}
+.searchbox input::placeholder{color:var(--faint)}
+.search-clear{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:28px;height:28px;border-radius:50%;border:0;background:var(--fill);color:var(--dim);display:none;align-items:center;justify-content:center;font-size:12px;line-height:1}
+.filter-btn{position:relative;width:44px;height:44px;flex-shrink:0;border-radius:50%;border:1px solid var(--glass-border);background:var(--glass-strong);color:var(--text);display:flex;align-items:center;justify-content:center;box-shadow:inset 0 1px 0 var(--glass-hi), 0 2px 8px rgba(0,0,0,.08)}
+.filter-btn svg{width:20px;height:20px}
+.filter-btn .dot{position:absolute;top:7px;right:8px;width:8px;height:8px;border-radius:50%;background:#ff9f0a;display:none}
+.filter-panel{display:none;margin-top:12px}
+.filter-panel.open{display:block;animation:sheetIn .3s cubic-bezier(.2,.9,.3,1)}
+@keyframes sheetIn{from{opacity:0;transform:translateY(-6px) scale(.99)}to{opacity:1;transform:none}}
+.filter-inner{border-radius:24px;padding:16px 18px;display:grid;gap:13px}
+.fgroup{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.fgroup .flabel{width:36px;flex-shrink:0;font-size:13px;font-weight:600;color:var(--dim)}
+.fgroup .opts{display:flex;gap:6px;flex-wrap:wrap}
+.fgroup .opts button{border-radius:999px;padding:7px 15px;font-size:13px;border:1px solid var(--hairline);background:transparent;color:var(--dim);transition:all .2s}
+.fgroup .opts button[aria-checked="true"]{background:var(--accent);color:var(--accent-text);border-color:transparent;font-weight:600}
+/* ---------- 轮播 ---------- */
+.carousel{margin-top:20px;position:relative;overflow:hidden;border-radius:26px;background:var(--fill);touch-action:pan-y;user-select:none;-webkit-user-select:none;box-shadow:var(--shadow)}
+.carousel-track{display:flex;will-change:transform}
+.carousel-slide{width:100%;flex-shrink:0}
+.carousel-slide button,.carousel-slide .slide-ph{display:block;width:100%;border:0;padding:0;background:none;cursor:zoom-in}
+.carousel-slide img{width:100%;aspect-ratio:16/10;object-fit:cover}
+.chip{position:absolute;display:inline-flex;align-items:center;gap:4px;padding:5px 11px;border-radius:999px;font-size:11.5px;font-weight:500;color:var(--text);pointer-events:none}
+.car-name{left:12px;top:12px}
+.car-count{left:12px;bottom:12px}
+.car-dots{position:absolute;right:12px;bottom:8px;display:flex;gap:2px}
+.car-dots button{width:26px;height:26px;border:0;background:none;display:flex;align-items:center;justify-content:center;padding:0}
+.car-dots span{display:block;width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.5);box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.car-dots button[aria-current="true"] span{background:#fff}
+.car-arrow{position:absolute;top:50%;transform:translateY(-50%);z-index:5;width:42px;height:42px;border-radius:50%;border:1px solid var(--glass-border);background:var(--glass);-webkit-backdrop-filter:blur(16px) saturate(1.6);backdrop-filter:blur(16px) saturate(1.6);color:var(--text);font-size:24px;line-height:1;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 1px 0 var(--glass-hi),0 3px 12px rgba(0,0,0,.18);transition:transform .15s}
+.car-arrow:active{transform:translateY(-50%) scale(.92)}
+.car-arrow.prev{left:10px}.car-arrow.next{right:10px}
+.car-hint{margin-top:10px;display:none;align-items:center;justify-content:center;gap:8px;font-size:13px;font-weight:600;color:var(--dim)}
+.car-hint.show{display:flex}
+.car-hint .arr{font-size:16px;color:var(--faint)}
+/* ---------- 分组标题 ---------- */
+.group-head{display:flex;align-items:baseline;gap:10px;margin:34px 4px 0}
+.group-head h2{margin:0;font-size:22px;font-weight:700;letter-spacing:-.01em}
+.group-head span{font-size:13px;color:var(--faint)}
+/* ---------- 大图卡片（0.2.5 平铺版式） ---------- */
+.grid{display:grid;gap:22px;margin-top:16px}
+@media(min-width:780px){.grid{grid-template-columns:1fr 1fr}}
+.card{background:var(--card-bg);-webkit-backdrop-filter:blur(20px) saturate(1.6);backdrop-filter:blur(20px) saturate(1.6);border:1px solid var(--hairline);border-radius:26px;padding:20px;box-shadow:var(--shadow)}
+@supports not ((backdrop-filter:blur(4px)) or (-webkit-backdrop-filter:blur(4px))){
+  .card{background:var(--surface)}
+}
+.card-head{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.card-title{display:flex;align-items:baseline;gap:10px;min-width:0;flex-wrap:wrap}
+.card-title h3{margin:0;font-size:17px;font-weight:600;letter-spacing:-.01em}
+.code{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:13px;font-weight:600;color:var(--faint);letter-spacing:.04em}
+.meta{font-size:13px;color:var(--faint);white-space:nowrap}
+.tagline{margin:6px 0 0;font-size:13px;color:var(--dim);line-height:1.55}
+.bigfig{margin:14px 0 0}
+.bigimg{position:relative;display:block;width:100%;border:0;padding:0;background:var(--fill);border-radius:18px;overflow:hidden;cursor:pointer;text-align:left}
+.bigimg img{display:block;width:100%;aspect-ratio:16/10;object-fit:cover}
+.bigimg img.img-before{position:absolute;inset:0;height:100%;opacity:0;transition:opacity .5s ease}
+.bigimg.show-before img.img-before{opacity:1}
+.swap-hint{position:absolute;right:8px;bottom:8px;padding:4px 11px;border-radius:999px;font-size:11px;font-weight:600;color:#fff;background:rgba(20,20,22,.45);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.25);pointer-events:none}
+.bigfig figcaption{margin-top:7px;font-size:11.5px;color:var(--faint);line-height:1.5}
+.badge{position:absolute;left:8px;top:8px;padding:3px 9px;border-radius:999px;font-size:10.5px;font-weight:600;color:#fff;background:rgba(20,20,22,.45);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.25);pointer-events:none}
+.tagrow{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.tagchip{font-size:13px;font-weight:500;color:var(--dim);background:var(--fill2);border:1px solid var(--hairline);border-radius:999px;padding:3px 10px}
+.ver-line{margin-top:14px;padding-top:11px;border-top:1px solid var(--hairline);display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13px;color:var(--faint)}
+.ver-line .vcode{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:12.5px;font-weight:700;color:var(--dim);letter-spacing:.03em}
+.detail-link{margin-top:14px;width:100%;border:0;border-radius:999px;padding:11px;font-size:14px;font-weight:600;color:var(--text);background:var(--fill2);display:flex;align-items:center;justify-content:center;gap:6px;transition:transform .15s}
+.detail-link:active{transform:scale(.98);opacity:.9}
+.detail-link .chev{color:var(--faint);font-weight:400}
+.empty{padding:48px 16px;text-align:center;color:var(--dim);font-size:14px;line-height:1.8;border-radius:26px;margin-top:22px}
+/* ---------- 收藏按钮（Apple Music 红） ---------- */
+.fav-btn{flex-shrink:0;width:38px;height:38px;border-radius:50%;border:1px solid var(--glass-border);background:var(--glass-strong);color:#c2c2c9;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 1px 0 var(--glass-hi), 0 2px 8px rgba(0,0,0,.06);-webkit-backdrop-filter:blur(10px) saturate(1.5);backdrop-filter:blur(10px) saturate(1.5);transition:color .25s,transform .15s}
+:root[data-theme="dark"] .fav-btn{color:#5a5a5e}
+.fav-btn svg{width:19px;height:19px;fill:currentColor}
+.fav-btn:active{transform:scale(.88)}
+.fav-btn.on{color:var(--am)}
+.fav-btn.pop{animation:favPop .35s cubic-bezier(.2,1.6,.4,1)}
+@keyframes favPop{0%{transform:scale(.8)}55%{transform:scale(1.18)}100%{transform:scale(1)}}
+/* ---------- 底部导航：悬浮胶囊 · 液态玻璃（常驻，上滑自动缩小 / 下滑超阈值恢复） ---------- */
+.tabbar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(12px + env(safe-area-inset-bottom, 0px));z-index:80;
+  transform-origin:50% 100%;
+  transition:transform .38s cubic-bezier(.22,1,.36,1),padding .38s cubic-bezier(.22,1,.36,1),width .38s cubic-bezier(.22,1,.36,1),opacity .38s ease;
+  width:min(430px,calc(100% - 32px));
+  background:var(--glass);
+  -webkit-backdrop-filter:blur(26px) saturate(1.9);
+  backdrop-filter:blur(26px) saturate(1.9);
+  border:1px solid var(--glass-border);
+  border-radius:999px;
+  box-shadow:inset 0 1px 0 var(--glass-hi), inset 0 -0.5px 0 rgba(0,0,0,.05), 0 14px 38px rgba(0,0,0,.16), 0 3px 10px rgba(0,0,0,.08);
+  padding:7px;
+  display:grid;grid-template-columns:repeat(4,1fr);gap:2px}
+@supports not ((backdrop-filter:blur(4px)) or (-webkit-backdrop-filter:blur(4px))){
+  .tabbar{background:var(--glass-strong)}
+}
+.tabbar button{border:0;background:transparent;border-radius:999px;padding:7px 2px 5px;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--faint);font-size:11px;font-weight:500;transition:color .25s,background .25s,padding .38s cubic-bezier(.22,1,.36,1),font-size .38s cubic-bezier(.22,1,.36,1),gap .38s cubic-bezier(.22,1,.36,1)}
+.tabbar button svg{width:25px;height:25px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;transition:width .38s cubic-bezier(.22,1,.36,1),height .38s cubic-bezier(.22,1,.36,1)}
+/* 缩小态：隐去文字标签、图标保持接近正常尺寸，胶囊靠去掉文字行变矮，仍可见、可点、可滑动选中 */
+.tabbar button .tab-label{display:block;line-height:1.3;max-height:18px;opacity:1;transition:opacity .3s ease,max-height .38s cubic-bezier(.22,1,.36,1)}
+.tabbar.shrunk{opacity:.96;padding:5px;width:min(304px,calc(100% - 104px))}
+.tabbar.shrunk button{padding:6px 2px;gap:0}
+.tabbar.shrunk button svg{width:23px;height:23px}
+.tabbar.shrunk button .tab-label{max-height:0;opacity:0}
+.tabbar button svg .fillp{fill:currentColor;stroke:none}
+.tabbar button[aria-selected="true"]{color:var(--am);font-weight:600}
+/* 可滑动的选中指示：独立的玻璃高亮块，在按钮下层平移；按住滑动时跟随手指，松手滑到确认项 */
+.tabbar{touch-action:pan-y}
+.tabbar .tab-ind{position:absolute;left:0;top:0;z-index:0;border-radius:999px;background:var(--glass-strong);
+  box-shadow:inset 0 1px 0 var(--glass-hi), 0 1px 5px rgba(0,0,0,.07);
+  pointer-events:none;will-change:transform;opacity:0}
+.tabbar button{position:relative;z-index:1}
+/* 量目标态布局时临时禁用胶囊 / 按钮 / 图标 / 标签的过渡：同步量完即恢复，不产生可见动画，
+   只为拿到缩小 / 恢复动画结束时的最终尺寸，避免指示块按动画开始前的旧尺寸错位一拍 */
+.tabbar.tab-noanim,.tabbar.tab-noanim button,.tabbar.tab-noanim button svg,.tabbar.tab-noanim .tab-label{transition:none!important}
+/* ---------- 主题切换（右上角悬浮玻璃圆钮） ---------- */
+.theme-toggle{position:fixed;top:calc(12px + env(safe-area-inset-top, 0px));right:16px;z-index:40;
+  width:42px;height:42px;border-radius:50%;border:1px solid var(--glass-border);
+  background:var(--glass);-webkit-backdrop-filter:blur(20px) saturate(1.7);backdrop-filter:blur(20px) saturate(1.7);
+  color:var(--text);display:flex;align-items:center;justify-content:center;
+  box-shadow:inset 0 1px 0 var(--glass-hi), 0 4px 16px rgba(0,0,0,.10);transition:transform .15s}
+.theme-toggle:active{transform:scale(.9)}
+.theme-toggle svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.theme-toggle .ic-sun{display:none}
+:root[data-theme="dark"] .theme-toggle .ic-sun{display:block}
+:root[data-theme="dark"] .theme-toggle .ic-moon{display:none}
+/* ---------- 滑入层（详情 / 资料库） ---------- */
+.sheet{position:fixed;inset:0;z-index:50;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch;display:none;
+  transform:translateX(103%);transition:transform .48s cubic-bezier(.32,.9,.3,1);pointer-events:none}
+.sheet.shown{display:block}
+.sheet.open{transform:none;pointer-events:auto}
+.sheet-inner{max-width:1080px;margin:0 auto;padding:0 20px calc(118px + env(safe-area-inset-bottom, 0px))}
+.sheet-bar{position:sticky;top:0;z-index:5;margin:0 -20px;padding:calc(10px + env(safe-area-inset-top, 0px)) 20px 10px;
+  background:var(--glass);-webkit-backdrop-filter:blur(22px) saturate(1.7);backdrop-filter:blur(22px) saturate(1.7);
+  border-bottom:1px solid var(--glass-border);display:flex;align-items:center;justify-content:space-between;gap:10px}
+.back-btn{border:0;background:transparent;color:var(--am);font-size:16px;font-weight:500;padding:6px 4px;display:inline-flex;align-items:center;gap:2px}
+.back-btn .chev{font-size:22px;line-height:1;font-weight:400}
+.sheet-bar .bar-title{font-size:15px;font-weight:600;color:var(--dim)}
+/* ---------- 详情 ---------- */
+.detail-hero{margin-top:18px}
+.detail-name{margin:20px 0 0;font-size:28px;font-weight:700;letter-spacing:-.015em;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.detail-meta{margin:8px 0 0;font-size:13px;color:var(--faint)}
+.detail-tagline{margin:10px 0 0;font-size:15px;color:var(--dim);line-height:1.65}
+.try-big-btn{margin-top:22px;width:100%;border:0;border-radius:16px;padding:16px;font-size:16px;font-weight:600;color:#fff;background:var(--am);box-shadow:0 8px 24px rgba(250,45,72,.28);transition:transform .15s}
+.try-big-btn:active{transform:scale(.98);opacity:.92}
+.detail-favrow{margin-top:14px;display:flex;align-items:center;gap:10px;font-size:13px;color:var(--dim)}
+/* ---------- 资料库入口与列表 ---------- */
+.lib-entry{margin-top:20px;width:100%;text-align:left;border:1px solid var(--hairline);background:var(--card-bg);-webkit-backdrop-filter:blur(20px) saturate(1.6);backdrop-filter:blur(20px) saturate(1.6);border-radius:20px;padding:16px 18px;box-shadow:var(--shadow-sm);display:flex;align-items:center;justify-content:space-between;gap:10px}
+.lib-entry .t{font-size:16px;font-weight:600}
+.lib-entry .s{display:block;margin-top:3px;font-size:12.5px;color:var(--faint);font-weight:400}
+.lib-entry .chev{font-size:22px;color:var(--faint)}
+.mine-entries{display:grid;gap:12px;margin-top:20px}
+.mine-entries .lib-entry{margin-top:0;width:100%}
+.sheet#detail-sheet{z-index:55}
+.sheet#lib-sheet{z-index:56}
+.lib-panel h3{margin:22px 0 0;font-size:22px;font-weight:700;letter-spacing:-.01em}
+.lib-panel .lib-sub{margin:8px 0 0;font-size:12.5px;color:var(--dim);line-height:1.7}
+.lib-group{margin:18px 0 8px;font-size:13px;font-weight:700;color:var(--dim)}
+.lib-row{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;padding:11px 2px;border-top:1px solid var(--hairline);align-items:baseline}
+.lib-row .lcode{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:12.5px;font-weight:700;color:var(--faint)}
+.lib-row .lname{font-size:15px;font-weight:600}
+.lib-row .lver{grid-column:2;font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:12.5px;font-weight:700;color:var(--text)}
+.lib-row .ltags{grid-column:2;font-size:12px;color:var(--dim);line-height:1.6}
+.lib-row .lver small{font-family:inherit;font-weight:400;color:var(--faint);margin-right:6px}
+@media(min-width:780px){.lib-row{grid-template-columns:64px 170px auto 1fr}.lib-row .lver,.lib-row .ltags{grid-column:auto}}
+/* ---------- 试照片全屏（正在播放式） ---------- */
+.tryview{position:fixed;inset:0;z-index:60;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch;display:none;
+  transform:translateY(103%);transition:transform .5s cubic-bezier(.32,.9,.3,1);pointer-events:none}
+.tryview.shown{display:block}
+.tryview.open{transform:none;pointer-events:auto}
+.try-inner{max-width:760px;margin:0 auto;padding:0 20px calc(118px + env(safe-area-inset-bottom, 0px))}
+.try-topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:calc(14px + env(safe-area-inset-top, 0px))}
+.try-topbar .tt{min-width:0}
+.try-topbar .tt p{margin:0;font-size:12px;color:var(--faint)}
+.try-topbar .tt h3{margin:2px 0 0;font-size:20px;font-weight:700;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.x-btn{flex-shrink:0;width:38px;height:38px;border-radius:50%;border:1px solid var(--glass-border);background:var(--glass-strong);color:var(--dim);font-size:15px;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 1px 0 var(--glass-hi),0 2px 8px rgba(0,0,0,.08);-webkit-backdrop-filter:blur(10px) saturate(1.5);backdrop-filter:blur(10px) saturate(1.5)}
+.upload-zone{margin-top:18px;border:1.5px dashed var(--hairline);border-radius:20px;padding:26px 14px;text-align:center;background:var(--fill2)}
+.upload-zone p{margin:0 0 12px;font-size:13.5px;color:var(--dim)}
+.upload-btn{display:inline-block;background:var(--am);color:#fff;border-radius:999px;padding:11px 26px;font-size:14.5px;font-weight:600;cursor:pointer}
+input[type=file].hidden-file{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden}
+.ba-wrap{margin-top:18px;display:none}
+.ba-stage{position:relative;border-radius:20px;overflow:hidden;background:#000;touch-action:pan-y;line-height:0;box-shadow:var(--shadow)}
+.ba-stage canvas{display:block;width:100%;height:auto}
+.ba-stage canvas.orig-top{position:absolute;inset:0;height:100%;opacity:0;transition:opacity .5s ease;pointer-events:none}
+.ba-stage.show-orig canvas.orig-top{opacity:1}
+.ba-labels{position:absolute;top:10px;left:10px;right:10px;z-index:3;display:flex;justify-content:flex-start;pointer-events:none}
+.ba-labels span{background:rgba(20,20,22,.55);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.25);color:#fff;font-size:11px;font-weight:600;padding:3px 10px;border-radius:999px}
+.ba-stage{cursor:pointer}
+.ba-stage:focus-visible{outline:2px solid var(--am);outline-offset:2px}
+.controls{margin-top:18px;display:grid;gap:16px}
+.controls label{font-size:13px;font-weight:600;display:flex;justify-content:space-between}
+.controls label output{font-weight:400;color:var(--dim)}
+input[type=range]{width:100%;accent-color:var(--am)}
+.dl-btn{width:100%;border:0;border-radius:999px;background:var(--accent);color:var(--accent-text);font-size:15px;font-weight:600;padding:13px}
+.dl-btn:active{opacity:.85}
+.note-local{font-size:12px;color:var(--faint);margin:2px 0 0;text-align:center}
+.ba-hint{margin:9px 2px 0;font-size:12px;color:var(--faint);line-height:1.6}
+.dl-status{margin:2px 0 0;font-size:13px;line-height:1.65;color:var(--dim);text-align:center}
+.dl-status:empty{margin:0}
+.dl-status.err{color:#d70015;font-weight:600}
+:root[data-theme="dark"] .dl-status.err{color:#ff6961}
+.save-panel{border:1px solid var(--hairline);border-radius:18px;padding:12px;background:var(--fill2)}
+.save-panel img{width:100%;height:auto;border-radius:12px}
+.save-tip{margin:10px 2px;font-size:12.5px;color:var(--dim);line-height:1.65}
+.close-btn{flex-shrink:0;border:1px solid var(--glass-border);background:var(--glass-strong);color:var(--dim);border-radius:999px;padding:6px 14px;font-size:13px;box-shadow:inset 0 1px 0 var(--glass-hi)}
+/* ---------- 通用设置：字号四档（整体缩放内容区）与减少动效 ---------- */
+:root{--uizoom:1}
+:root[data-font="small"]{--uizoom:.92}
+:root[data-font="large"]{--uizoom:1.08}
+:root[data-font="xlarge"]{--uizoom:1.17}
+.wrap,.sheet-inner,.try-inner{zoom:var(--uizoom)}
+:root[data-motion="reduce"]{scroll-behavior:auto}
+:root[data-motion="reduce"] *, :root[data-motion="reduce"] *::before, :root[data-motion="reduce"] *::after{animation-duration:.001s!important;animation-iteration-count:1!important;transition-duration:.001s!important}
+/* ---------- 「我的」页 ---------- */
+.local-note{margin-top:16px;border-radius:20px;padding:14px 16px;font-size:12.5px;line-height:1.75;color:var(--dim)}
+.local-note strong{color:var(--text)}
+.mine-sec-head{display:flex;align-items:baseline;gap:10px;margin:34px 4px 0}
+.mine-sec-head h2{margin:0;font-size:22px;font-weight:700;letter-spacing:-.01em}
+.mine-sec-head span{font-size:13px;color:var(--faint)}
+.profile-card{margin-top:16px;background:var(--card-bg);-webkit-backdrop-filter:blur(20px) saturate(1.6);backdrop-filter:blur(20px) saturate(1.6);border:1px solid var(--hairline);border-radius:26px;padding:20px;box-shadow:var(--shadow);display:flex;gap:16px;align-items:center}
+.avatar-btn{position:relative;flex-shrink:0;width:76px;height:76px;border-radius:50%;border:1px solid var(--hairline);padding:0;overflow:hidden;background:var(--fill)}
+.avatar-btn img{width:100%;height:100%;object-fit:cover}
+.avatar-btn span{position:absolute;left:0;right:0;bottom:0;font-size:10px;font-weight:600;color:#fff;background:rgba(20,20,22,.5);padding:3px 0}
+.profile-info{min-width:0;flex:1}
+.profile-name{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.profile-name h3{margin:0;font-size:20px;font-weight:700;letter-spacing:-.01em}
+.name-edit-btn{border:1px solid var(--hairline);background:var(--fill2);color:var(--dim);border-radius:999px;padding:4px 12px;font-size:12px;font-weight:600}
+.profile-id{margin-top:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--dim)}
+.profile-id .uid{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-weight:700;color:var(--text);letter-spacing:.05em}
+.copy-btn{border:1px solid var(--hairline);background:var(--fill2);color:var(--text);border-radius:999px;padding:4px 12px;font-size:12px;font-weight:600}
+.profile-note{margin:8px 0 0;font-size:12px;color:var(--faint);line-height:1.6}
+.name-edit-row{display:none;margin-top:10px;gap:8px;align-items:center}
+.name-edit-row.open{display:flex}
+.name-edit-row input{flex:1;min-width:0;border:1px solid var(--hairline);background:var(--surface);color:var(--text);border-radius:12px;padding:9px 12px;font-size:15px;outline:none}
+.name-edit-row button{border:0;border-radius:999px;padding:9px 16px;font-size:13px;font-weight:600;background:var(--accent);color:var(--accent-text)}
+.settings-card,.mine-form-card{margin-top:16px;background:var(--card-bg);-webkit-backdrop-filter:blur(20px) saturate(1.6);backdrop-filter:blur(20px) saturate(1.6);border:1px solid var(--hairline);border-radius:26px;padding:20px;box-shadow:var(--shadow)}
+.set-row{padding:13px 0;border-top:1px solid var(--hairline)}
+.set-row:first-child{padding-top:2px;border-top:0}
+.set-row:last-child{padding-bottom:2px}
+.set-row .set-label{font-size:15px;font-weight:600}
+.set-row .set-desc{margin:4px 0 0;font-size:12.5px;color:var(--faint);line-height:1.6}
+.set-row .fgroup{margin-top:10px}
+.switch-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.switch-btn{flex-shrink:0;width:52px;height:32px;border-radius:999px;border:0;background:var(--fill);position:relative;transition:background .25s}
+.switch-btn::after{content:"";position:absolute;top:2px;left:2px;width:28px;height:28px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.25);transition:left .25s}
+.switch-btn[aria-checked="true"]{background:#34c759}
+.switch-btn[aria-checked="true"]::after{left:22px}
+.danger-btn{width:100%;border:1px solid rgba(215,0,21,.35);background:transparent;color:#d70015;border-radius:999px;padding:11px;font-size:14px;font-weight:600}
+:root[data-theme="dark"] .danger-btn{color:#ff6961}
+.danger-btn.armed{background:#d70015;color:#fff;border-color:transparent}
+.set-status{margin:10px 2px 0;font-size:12.5px;color:var(--dim);line-height:1.6}
+.set-status:empty{margin:0}
+.mine-form-card .flabel2{display:block;font-size:13px;font-weight:600;margin:14px 0 6px}
+.mine-form-card .flabel2:first-of-type,.mine-form-card .flabel2:first-child{margin-top:0}
+.mine-form-card input[type=text],.mine-form-card textarea,.mine-form-card select{width:100%;border:1px solid var(--hairline);background:var(--surface);color:var(--text);border-radius:12px;padding:11px 12px;font-size:15px;outline:none;font-family:inherit;-webkit-appearance:none;appearance:none}
+.mine-form-card textarea{min-height:96px;resize:vertical;line-height:1.6}
+.pick-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.pick-preview{width:72px;height:54px;border-radius:12px;object-fit:cover;background:var(--fill);display:none}
+.submit-btn{margin-top:16px;width:100%;border:0;border-radius:999px;padding:12px;font-size:15px;font-weight:600;background:var(--accent);color:var(--accent-text)}
+.submit-btn:active{opacity:.85}
+.fb-notice{display:none;margin-top:12px;border-radius:14px;padding:11px 13px;font-size:12.5px;line-height:1.7;color:var(--dim);background:var(--fill2);border:1px solid var(--hairline)}
+.fb-notice.show{display:block}
+.ustyle-list{display:grid;gap:14px;margin-top:16px}
+@media(min-width:780px){.ustyle-list{grid-template-columns:1fr 1fr}}
+.ustyle-card{display:flex;gap:12px;align-items:center;background:var(--card-bg);-webkit-backdrop-filter:blur(20px) saturate(1.6);backdrop-filter:blur(20px) saturate(1.6);border:1px solid var(--hairline);border-radius:20px;padding:12px;box-shadow:var(--shadow-sm)}
+.ustyle-card img{width:88px;height:66px;border-radius:12px;object-fit:cover;flex-shrink:0}
+.ustyle-card .ui{min-width:0;flex:1}
+.ustyle-card .ui h4{margin:0;font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ustyle-card .ui p{margin:3px 0 0;font-size:12.5px;color:var(--dim);line-height:1.5}
+.ustyle-card .ui .src{font-size:11px;color:var(--faint)}
+.ustyle-del{flex-shrink:0;border:1px solid var(--hairline);background:var(--fill2);color:#d70015;border-radius:999px;padding:6px 12px;font-size:12px;font-weight:600}
+:root[data-theme="dark"] .ustyle-del{color:#ff6961}
+.user-badge{font-size:11px;font-weight:600;color:var(--am)}
+/* ---------- 邀请码 / 用户协议二级页 ---------- */
+.sheet#invite-sheet{z-index:57}
+.sheet#agreement-sheet{z-index:57}
+.agree-card{margin-top:16px;background:var(--card-bg);-webkit-backdrop-filter:blur(20px) saturate(1.6);backdrop-filter:blur(20px) saturate(1.6);border:1px solid var(--hairline);border-radius:26px;padding:22px 20px;box-shadow:var(--shadow)}
+.agree-card .agree-draft{border-radius:14px;padding:12px 14px;font-size:13px;line-height:1.75;color:var(--dim);background:var(--fill2);border:1px solid var(--hairline)}
+.agree-card h3{margin:22px 0 0;font-size:19px;font-weight:700;letter-spacing:-.01em}
+.agree-card h3:first-of-type{margin-top:18px}
+.agree-card p,.agree-card li{font-size:14px;line-height:1.85;color:var(--dim)}
+.agree-card p{margin:8px 0 0}
+.agree-card ul{margin:8px 0 0;padding-left:20px}
+.agree-card li{margin-top:4px}
+.agree-card strong{color:var(--text)}
+.agree-meta{margin:14px 0 0;font-size:12.5px;color:var(--faint);line-height:1.7}
+/* ---------- 手风琴折叠组：默认全部收起，只显示标题行 + 当前值，点开才平滑展开 ---------- */
+.acc-head{width:100%;border:0;background:transparent;color:var(--text);display:flex;align-items:center;gap:10px;padding:15px 0;text-align:left;font-size:15px;font-weight:600}
+.acc-head .acc-title{flex-shrink:0}
+.acc-head .acc-val{flex:1;min-width:0;text-align:right;font-size:13px;font-weight:400;color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.acc-head .acc-chev{flex-shrink:0;font-size:20px;line-height:1;color:var(--faint);transition:transform .35s cubic-bezier(.22,1,.36,1)}
+.acc.open .acc-head .acc-chev{transform:rotate(90deg)}
+.acc-body{display:grid;grid-template-rows:0fr;transition:grid-template-rows .42s cubic-bezier(.22,1,.36,1)}
+.acc.open .acc-body{grid-template-rows:1fr}
+.acc-inner{overflow:hidden;min-height:0}
+.acc-inner-pad{padding-bottom:15px}
+.acc-block{margin-top:16px;background:var(--card-bg);-webkit-backdrop-filter:blur(20px) saturate(1.6);backdrop-filter:blur(20px) saturate(1.6);border:1px solid var(--hairline);border-radius:26px;padding:2px 20px 6px;box-shadow:var(--shadow)}
+.acc-block .mine-form-card{margin-top:0;background:transparent;border:0;box-shadow:none;padding:0 0 14px;border-radius:0;-webkit-backdrop-filter:none;backdrop-filter:none}
+.settings-card .set-row{padding:0}
+.settings-card .set-row .acc-inner .set-desc:first-child{margin-top:0}
+.agree-full{display:grid;grid-template-rows:0fr;transition:grid-template-rows .5s cubic-bezier(.22,1,.36,1)}
+.agree-full.open{grid-template-rows:1fr}
+.agree-full-inner{overflow:hidden;min-height:0}
+.agree-toggle{margin-top:16px;width:100%;border:0;border-radius:999px;padding:12px;font-size:14.5px;font-weight:600;background:var(--accent);color:var(--accent-text)}
+.agree-toggle:active{opacity:.85}
+/* ---------- 页脚 ---------- */
+footer{margin-top:44px;padding-top:18px;border-top:1px solid var(--hairline);text-align:center;font-size:12px;color:var(--faint);line-height:1.9}
+/* ---------- Lightbox ---------- */
+.lightbox{position:fixed;inset:0;z-index:90;background:rgba(10,10,12,.94);display:none;flex-direction:column}
+.lightbox.open{display:flex}
+.lightbox .lb-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 18px}
+.lightbox .lb-head p{margin:0;color:rgba(255,255,255,.92);font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lightbox .lb-head button{flex-shrink:0;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.14);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);color:#fff;border-radius:999px;padding:7px 18px;font-size:13px;font-weight:500}
+.lightbox .lb-body{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:0 14px 20px}
+.lightbox .lb-body img{max-width:100%;max-height:100%;object-fit:contain;border-radius:10px}
+@media(max-width:560px){
+  .wrap{padding:0 14px calc(112px + env(safe-area-inset-bottom, 0px))}
+  .sheet-inner,.try-inner{padding:0 14px calc(112px + env(safe-area-inset-bottom, 0px))}
+  .sheet-bar{margin:0 -14px;padding-left:14px;padding-right:14px}
+  .card{padding:16px}
+}
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto}
+  .filter-panel.open{animation:none}
+  .bigimg img.img-before{transition:none}
+  .ba-stage canvas.orig-top{transition:none}
+  .page.active{animation:none}
+  .sheet,.tryview{transition:none}
+  .tabbar,.tabbar button,.tabbar button svg,.tabbar .tab-label{transition:none}
+  .fav-btn.pop{animation:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- 第 0 层：浏览 -->
+  <section class="page" id="page-browse">
+    <header class="top">
+      <h1>BE MASTER</h1>
+      <p class="sub">成 为 大 师</p>
+      <p class="intro">19 个摄影风格 · 看图选，点卡片进详情，选完试自己的照片</p>
+    </header>
+
+    <div class="searchrow">
+      <div class="searchbox">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>
+        <label for="search-input" style="position:absolute;left:-9999px">搜索风格</label>
+        <input id="search-input" type="text" inputmode="search" autocomplete="off" placeholder="搜索名称 / 代码 / 关键词" aria-label="搜索风格名称、代码或关键词" />
+        <button type="button" class="search-clear" id="search-clear" aria-label="清空搜索">✕</button>
+      </div>
+      <button type="button" class="filter-btn" id="filter-btn" aria-label="展开筛选" aria-expanded="false" aria-controls="filter-panel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+        <span class="dot" id="filter-dot"></span>
+      </button>
+    </div>
+    <div class="filter-panel" id="filter-panel">
+      <div class="filter-inner glass" id="filter-inner"></div>
+    </div>
+
+    <div class="carousel" id="carousel" aria-label="示例图轮播">
+      <div class="carousel-track" id="carousel-track"></div>
+      <span class="chip glass car-name" id="car-name"></span>
+      <span class="chip glass car-count" id="car-count"></span>
+      <span class="car-dots" id="car-dots"></span>
+      <button type="button" class="car-arrow prev" id="car-prev" aria-label="上一张示例图">‹</button>
+      <button type="button" class="car-arrow next" id="car-next" aria-label="下一张示例图">›</button>
+    </div>
+    <p class="car-hint" id="car-hint"><span class="arr">‹</span> 左右滑动更换示例图 <span class="arr">›</span></p>
+
+    <div id="browse-groups"></div>
+
+    <footer>
+      <p>BE MASTER · 极简版 0.2.15 · 邀请码与用户协议新增 + 设置折叠组（基于 0.2.14）<br>版本代码规则：风格代码-V主.次.修订（如 PT-01-V1.2.0）；风格数据每改一次，对应递增修订号，网站整体版本同步记录在资料库</p>
+    </footer>
+  </section>
+
+  <!-- 风光：竖排大图列表 -->
+  <section class="page" id="page-landscape">
+    <div class="page-head"><h2>风光</h2><p id="landscape-count"></p></div>
+    <div class="grid" id="list-landscape"></div>
+    <div class="empty glass" id="empty-landscape" style="display:none">没有符合的风格。<br>去「浏览」页换个关键词，或放宽筛选试试。</div>
+  </section>
+
+  <!-- 人像：竖排大图列表 -->
+  <section class="page" id="page-portrait">
+    <div class="page-head"><h2>人像</h2><p id="portrait-count"></p></div>
+    <div class="grid" id="list-portrait"></div>
+    <div class="empty glass" id="empty-portrait" style="display:none">没有符合的风格。<br>去「浏览」页换个关键词，或放宽筛选试试。</div>
+  </section>
+
+  <!-- 我的 -->
+  <section class="page" id="page-mine">
+    <div class="page-head"><h2>我的</h2></div>
+
+    <!-- 用户信息 -->
+    <div class="profile-card">
+      <button type="button" class="avatar-btn" id="avatar-btn" aria-label="更换头像，从相册选一张图">
+        <img id="avatar-img" alt="我的头像" />
+        <span>更换</span>
+      </button>
+      <input class="hidden-file" id="avatar-input" type="file" accept="image/jpeg,image/png,image/webp" />
+      <div class="profile-info">
+        <div class="profile-name">
+          <h3 id="profile-name">摄影爱好者</h3>
+          <button type="button" class="name-edit-btn" id="name-edit-btn">改名</button>
+        </div>
+        <div class="name-edit-row" id="name-edit-row">
+          <label for="name-input" style="position:absolute;left:-9999px">新名字</label>
+          <input id="name-input" type="text" maxlength="20" placeholder="输入新名字" />
+          <button type="button" id="name-save-btn">保存</button>
+        </div>
+        <div class="profile-id"><span>ID</span><span class="uid" id="profile-id">—</span><button type="button" class="copy-btn" id="copy-id-btn">复制 ID</button></div>
+        <p class="profile-note" id="profile-status">点头像更换，点「改名」修改名字。</p>
+      </div>
+    </div>
+
+    <div class="mine-entries">
+      <button type="button" class="lib-entry mine-entry" id="settings-open">
+        <span><span class="t">通用设置</span><span class="s">字体、颜色、收藏与反馈</span></span>
+        <span class="chev">›</span>
+      </button>
+      <button type="button" class="lib-entry mine-entry" id="submit-open">
+        <span><span class="t">创意投稿</span><span class="s">上传个人风格</span></span>
+        <span class="chev">›</span>
+      </button>
+      <button type="button" class="lib-entry mine-entry" id="invite-open">
+        <span><span class="t">邀请码</span><span class="s">填入邀请码 / 申请邀请码</span></span>
+        <span class="chev">›</span>
+      </button>
+      <button type="button" class="lib-entry mine-entry" id="agreement-open">
+        <span><span class="t">用户协议</span><span class="s">使用规则、所有权与免责说明</span></span>
+        <span class="chev">›</span>
+      </button>
+    </div>
+  </section>
+</div>
+
+<!-- 第 1 层：风格详情（从右侧滑入） -->
+<div class="sheet" id="detail-sheet" role="dialog" aria-modal="true" aria-label="风格详情">
+  <div class="sheet-inner">
+    <div class="sheet-bar">
+      <button type="button" class="back-btn" id="detail-back"><span class="chev">‹</span><span id="detail-back-label">浏览</span></button>
+      <span class="bar-title" id="detail-bar-title"></span>
+      <span style="width:64px"></span>
+    </div>
+    <div id="detail-body"></div>
+  </div>
+</div>
+
+<!-- 资料库（从收藏页进入） -->
+<div class="sheet" id="lib-sheet" role="dialog" aria-modal="true" aria-label="资料库">
+  <div class="sheet-inner">
+    <div class="sheet-bar">
+      <button type="button" class="back-btn" id="lib-back"><span class="chev">‹</span>通用设置</button>
+      <span class="bar-title">资料库</span>
+      <span style="width:64px"></span>
+    </div>
+    <section class="lib-panel" aria-label="资料库：全部风格与版本代码">
+      <h3>资料库</h3>
+      <p class="lib-sub" id="lib-sub"></p>
+      <div id="lib-list"></div>
+    </section>
+  </div>
+</div>
+
+<!-- 通用设置（二级页面，从「我的」进入） -->
+<div class="sheet" id="settings-sheet" role="dialog" aria-modal="true" aria-label="通用设置">
+  <div class="sheet-inner">
+    <div class="sheet-bar">
+      <button type="button" class="back-btn" id="settings-back"><span class="chev">‹</span>我的</button>
+      <span class="bar-title">通用设置</span>
+      <span style="width:64px"></span>
+    </div>
+    <div class="settings-card">
+      <div class="set-row acc" data-acc>
+        <button type="button" class="acc-head" data-acc-head aria-expanded="false"><span class="acc-title">字体大小</span><span class="acc-val" id="acc-font-val">标准</span><span class="acc-chev">›</span></button>
+        <div class="acc-body"><div class="acc-inner acc-inner-pad">
+          <p class="set-desc">四档，实时生效，全站一起变。</p>
+          <div class="fgroup"><div class="opts" role="radiogroup" aria-label="字体大小" id="set-font">
+            <button type="button" role="radio" data-val="small">小</button>
+            <button type="button" role="radio" data-val="standard">标准</button>
+            <button type="button" role="radio" data-val="large">大</button>
+            <button type="button" role="radio" data-val="xlarge">特大</button>
+          </div></div>
+        </div></div>
+      </div>
+      <div class="set-row acc" data-acc>
+        <button type="button" class="acc-head" data-acc-head aria-expanded="false"><span class="acc-title">页面颜色</span><span class="acc-val" id="acc-color-val">跟随系统</span><span class="acc-chev">›</span></button>
+        <div class="acc-body"><div class="acc-inner acc-inner-pad">
+          <p class="set-desc">白色 / 黑色 / 跟随系统三档，跟随系统时随设备深浅色走；与右上角的深浅切换按钮同步。</p>
+          <div class="fgroup"><div class="opts" role="radiogroup" aria-label="页面颜色" id="set-color">
+            <button type="button" role="radio" data-val="light">白色</button>
+            <button type="button" role="radio" data-val="dark">黑色</button>
+            <button type="button" role="radio" data-val="system">跟随系统</button>
+          </div></div>
+        </div></div>
+      </div>
+      <div class="set-row acc" data-acc>
+        <button type="button" class="acc-head" data-acc-head aria-expanded="false"><span class="acc-title">减少动效</span><span class="acc-val" id="acc-motion-val">关</span><span class="acc-chev">›</span></button>
+        <div class="acc-body"><div class="acc-inner acc-inner-pad">
+          <div class="switch-row">
+            <p class="set-desc" style="margin:0">打开后关掉全站的滑动、淡入等动画。</p>
+            <button type="button" class="switch-btn" id="set-motion" role="switch" aria-checked="false" aria-label="减少动效"></button>
+          </div>
+        </div></div>
+      </div>
+      <div class="set-row acc" data-acc>
+        <button type="button" class="acc-head" data-acc-head aria-expanded="false"><span class="acc-title">试照片默认强度</span><span class="acc-val" id="acc-strength-val">75%</span><span class="acc-chev">›</span></button>
+        <div class="acc-body"><div class="acc-inner acc-inner-pad">
+          <p class="set-desc">下次打开「试我的照片」时，风格强度滑轮的起始值。</p>
+          <div class="fgroup"><div class="opts" role="radiogroup" aria-label="试照片默认强度" id="set-strength">
+            <button type="button" role="radio" data-val="50">50%</button>
+            <button type="button" role="radio" data-val="75">75%</button>
+            <button type="button" role="radio" data-val="100">100%</button>
+          </div></div>
+        </div></div>
+      </div>
+      <div class="set-row acc" data-acc>
+        <button type="button" class="acc-head" data-acc-head aria-expanded="false"><span class="acc-title">清除本地数据</span><span class="acc-val">点开操作</span><span class="acc-chev">›</span></button>
+        <div class="acc-body"><div class="acc-inner acc-inner-pad">
+          <p class="set-desc">清除收藏、设置、上传风格、头像、名字与邀请码记录（ID 会保留），清除后无法恢复。</p>
+          <div class="fgroup"><button type="button" class="danger-btn" id="clear-data-btn">清除本地数据</button></div>
+          <p class="set-status" id="clear-status" role="status" aria-live="polite"></p>
+        </div></div>
+      </div>
+      <div class="set-row acc" data-acc>
+        <button type="button" class="acc-head" data-acc-head aria-expanded="false"><span class="acc-title">关于与版本</span><span class="acc-val" id="acc-about-val">0.2.15</span><span class="acc-chev">›</span></button>
+        <div class="acc-body"><div class="acc-inner acc-inner-pad">
+          <p class="set-desc">BE MASTER 极简版 <span id="about-version">0.2.15</span> · 数据保留在本机浏览器中，照片在本机处理。完整使用规则见「我的 · 用户协议」。</p>
+        </div></div>
+      </div>
+    </div>
+
+    <!-- 我的收藏（原收藏页功能移到这里，折叠组：点开才展开列表） -->
+    <div class="acc acc-block" data-acc>
+      <button type="button" class="acc-head" data-acc-head aria-expanded="false"><span class="acc-title">我的收藏</span><span class="acc-val" id="favorites-count"></span><span class="acc-chev">›</span></button>
+      <div class="acc-body"><div class="acc-inner">
+        <div class="grid" id="list-favorites" style="margin-top:6px"></div>
+        <div class="empty glass" id="empty-favorites" style="display:none;margin-top:6px">还没有收藏的风格。<br>点任意卡片右上角的爱心，就能把它收进这里。</div>
+        <div style="height:10px"></div>
+      </div></div>
+    </div>
+
+    <!-- 资料库（折叠组：点开才显示入口） -->
+    <div class="acc acc-block" data-acc>
+      <button type="button" class="acc-head" data-acc-head aria-expanded="false"><span class="acc-title">资料库</span><span class="acc-val">19 个风格 · 版本代码</span><span class="acc-chev">›</span></button>
+      <div class="acc-body"><div class="acc-inner acc-inner-pad">
+        <button type="button" class="lib-entry" id="lib-open" style="margin-top:2px">
+          <span><span class="t">打开资料库</span><span class="s">全部 19 个风格与版本代码</span></span>
+          <span class="chev">›</span>
+        </button>
+      </div></div>
+    </div>
+
+    <!-- 用户反馈（框架：暂无反馈服务器，仅本地保存；折叠组：点开才显示表单） -->
+    <div class="acc acc-block" data-acc>
+      <button type="button" class="acc-head" data-acc-head aria-expanded="false"><span class="acc-title">用户反馈</span><span class="acc-val">联网通道待接入</span><span class="acc-chev">›</span></button>
+      <div class="acc-body"><div class="acc-inner">
+    <div class="mine-form-card">
+      <label class="flabel2" for="fb-type">反馈类型</label>
+      <select id="fb-type">
+        <option>功能建议</option>
+        <option>显示问题</option>
+        <option>风格问题</option>
+        <option>其他</option>
+      </select>
+      <label class="flabel2" for="fb-content">反馈内容</label>
+      <textarea id="fb-content" maxlength="1000" placeholder="写下你遇到的问题或建议"></textarea>
+      <label class="flabel2" for="fb-contact">联系方式（选填）</label>
+      <input type="text" id="fb-contact" maxlength="60" placeholder="微信 / 邮箱等，方便开发者回复你" />
+      <button type="button" class="submit-btn" id="fb-submit-btn">提交反馈</button>
+      <div class="fb-notice" id="fb-notice">联网反馈功能待接入，当前仅本地保存、尚未发送给开发者。你可以点下面的「复制反馈内容」，通过其他渠道发给开发者。</div>
+      <div class="fgroup" style="margin-top:12px"><button type="button" class="copy-btn" id="fb-copy-btn" style="padding:8px 16px">复制反馈内容</button></div>
+      <p class="set-status" id="fb-status" role="status" aria-live="polite"></p>
+    </div>
+      </div></div>
+    </div>
+  </div>
+</div>
+
+<!-- 创意投稿（二级页面，从「我的」进入） -->
+<div class="sheet" id="submit-sheet" role="dialog" aria-modal="true" aria-label="创意投稿">
+  <div class="sheet-inner">
+    <div class="sheet-bar">
+      <button type="button" class="back-btn" id="submit-back"><span class="chev">‹</span>我的</button>
+      <span class="bar-title">创意投稿</span>
+      <span style="width:64px"></span>
+    </div>
+    <div class="mine-sec-head"><h2>我的风格</h2></div>
+    <div class="mine-form-card">
+      <div class="flabel2">上传一个自己的风格</div>
+      <div class="pick-row">
+        <label class="upload-btn" for="ustyle-file">选择示例图</label>
+        <input class="hidden-file" id="ustyle-file" type="file" accept="image/jpeg,image/png,image/webp" />
+        <img class="pick-preview" id="ustyle-preview" alt="风格示例图预览" />
+        <span class="set-status" id="ustyle-file-status">还没选图</span>
+      </div>
+      <label class="flabel2" for="ustyle-name">风格名</label>
+      <input type="text" id="ustyle-name" maxlength="16" placeholder="给这个风格起个短名" />
+      <label class="flabel2" for="ustyle-intro">一句话简介</label>
+      <input type="text" id="ustyle-intro" maxlength="40" placeholder="例如：雨天窗边的冷色调" />
+      <button type="button" class="submit-btn" id="ustyle-add-btn">添加到我的风格</button>
+      <p class="set-status" id="ustyle-status" role="status" aria-live="polite"></p>
+      <div class="ustyle-list" id="ustyle-list"></div>
+      <div class="empty glass" id="ustyle-empty">还没有上传过个人风格。<br>添加后会显示在这里，也会出现在「浏览」页的自定义组里（标明用户上传），不会混进 19 个大师风格。</div>
+    </div>
+  </div>
+</div>
+
+<!-- 邀请码（二级页面，从「我的」进入；两块都是折叠组，点开才显示表单） -->
+<div class="sheet" id="invite-sheet" role="dialog" aria-modal="true" aria-label="邀请码">
+  <div class="sheet-inner">
+    <div class="sheet-bar">
+      <button type="button" class="back-btn" id="invite-back"><span class="chev">‹</span>我的</button>
+      <span class="bar-title">邀请码</span>
+      <span style="width:64px"></span>
+    </div>
+
+    <div class="acc acc-block" data-acc>
+      <button type="button" class="acc-head" data-acc-head aria-expanded="false"><span class="acc-title">邀请码填入</span><span class="acc-val" id="invite-state-val">未填入</span><span class="acc-chev">›</span></button>
+      <div class="acc-body"><div class="acc-inner">
+        <div class="mine-form-card">
+          <label class="flabel2" for="invite-code-input">邀请码</label>
+          <input type="text" id="invite-code-input" maxlength="40" placeholder="输入你收到的邀请码" autocomplete="off" />
+          <button type="button" class="submit-btn" id="invite-submit-btn">提交邀请码</button>
+          <div class="fb-notice" id="invite-notice"></div>
+          <p class="set-status" id="invite-status" role="status" aria-live="polite"></p>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="acc acc-block" data-acc>
+      <button type="button" class="acc-head" data-acc-head aria-expanded="false"><span class="acc-title">邀请码申请</span><span class="acc-val" id="invite-apply-val">未申请</span><span class="acc-chev">›</span></button>
+      <div class="acc-body"><div class="acc-inner">
+        <div class="mine-form-card">
+          <label class="flabel2" for="invite-apply-name">姓名 / 昵称（选填）</label>
+          <input type="text" id="invite-apply-name" maxlength="30" placeholder="怎么称呼你都可以" />
+          <label class="flabel2" for="invite-apply-contact">联系方式</label>
+          <input type="text" id="invite-apply-contact" maxlength="60" placeholder="微信 / 邮箱等，方便把邀请码发给你" />
+          <label class="flabel2" for="invite-apply-reason">申请理由</label>
+          <textarea id="invite-apply-reason" maxlength="500" placeholder="简单说说你想用它做什么"></textarea>
+          <button type="button" class="submit-btn" id="invite-apply-btn">提交申请</button>
+          <div class="fb-notice" id="invite-apply-notice"></div>
+          <div class="fgroup" style="margin-top:12px"><button type="button" class="copy-btn" id="invite-apply-copy-btn" style="padding:8px 16px">复制申请内容</button></div>
+          <p class="set-status" id="invite-apply-status" role="status" aria-live="polite"></p>
+        </div>
+      </div></div>
+    </div>
+  </div>
+</div>
+
+<!-- 用户协议（二级页面，从「我的」进入；先显示摘要，点「展开全文」才显示完整协议） -->
+<div class="sheet" id="agreement-sheet" role="dialog" aria-modal="true" aria-label="用户协议">
+  <div class="sheet-inner">
+    <div class="sheet-bar">
+      <button type="button" class="back-btn" id="agreement-back"><span class="chev">‹</span>我的</button>
+      <span class="bar-title">用户协议</span>
+      <span style="width:64px"></span>
+    </div>
+    <div class="agree-card">
+      <p class="agree-draft"><strong>草案说明：</strong>本协议为草案模板，仅供本软件在测试与内部试用阶段参考使用。正式公开发布、收费运营或以其他方式商业化之前，开发者应委托专业律师结合届时实际功能、数据处理方式与运营模式进行审核、修订后再行发布；未经审核，本草案不构成法律意见。</p>
+      <p style="margin-top:14px">欢迎使用 BE MASTER（以下简称「本软件」）。本软件是一款<strong>图片优化与摄影风格模拟预览工具</strong>：你可以选择软件内的风格，对自己有权使用的照片在本机进行近似调色处理并预览、保存效果图。本协议是你与本软件开发者之间就使用本软件所达成的约定。<strong>你开始使用本软件，即表示你已阅读、理解并同意本协议的全部内容</strong>；如你不同意，请立即停止使用。</p>
+      <button type="button" class="agree-toggle" id="agree-toggle" aria-expanded="false" aria-controls="agree-full">展开全文</button>
+      <div class="agree-full" id="agree-full"><div class="agree-full-inner">
+
+      <h3>一、服务说明</h3>
+      <p>1. 本软件仅提供图片优化、色彩与影调调整、摄影风格模拟预览功能，以及与之相关的示例图展示、风格参数说明等辅助功能。</p>
+      <p>2. 本软件<strong>不提供</strong>摄影拍摄、平面设计、广告制作、商业修图、品牌咨询等任何专业服务；软件内的风格名称、示例图与参数说明仅用于帮助你理解和预览近似效果，不构成任何专业承诺或合作邀约。</p>
+      <p>3. 当前版本为静态 / 本地版本：照片处理在你设备的浏览器本地完成，不设服务器账号，邀请码验证、申请审核、联网反馈等联网功能尚未接入，相关页面仅作本地记录用途，具体以页面实际提示为准。</p>
+
+      <h3>二、使用范围：仅限个人、非商业用途</h3>
+      <p>1. 本软件仅供你<strong>个人学习、欣赏与非商业用途</strong>使用。开发者在本协议下<strong>不授予你任何商业授权</strong>，包括但不限于商业使用权、销售权、改编发表权与再许可权。</p>
+      <p>2. 未经开发者事先书面同意，你不得将本软件、软件内的风格、风格参数、示例图，以及通过本软件处理或生成的图片，用于任何商业用途，包括但不限于：</p>
+      <ul>
+        <li>广告、营销、推广、商品或服务宣传（包括线上店铺、社交平台商业账号、线下物料等）；</li>
+        <li>出售、出租、转让、再许可或以其他方式直接或间接牟利；</li>
+        <li>作为商品、包装、出版物、影视作品、设计交付物的组成部分对外提供；</li>
+        <li>以本软件或生成图片冒充专业摄影、设计服务成果交付客户。</li>
+      </ul>
+      <p>3. 如你确有商业使用需求，应事先联系开发者取得单独的书面授权；未取得授权的商业使用所产生的一切责任与后果由你自行承担，与开发者无关。</p>
+
+      <h3>三、生成图片的所有权</h3>
+      <p>1. 你上传 / 选入本软件处理的原始图片，其著作权及其他权利归你或原权利人所有，本协议不因你的使用行为而发生任何权利转移。</p>
+      <p>2. 通过本软件处理生成的图片，其所有权归<strong>你（用户）</strong>所有。开发者<strong>不侵占、不主张</strong>对你原图与生成图片的所有权或其他权利，不会将你的图片用于商业用途，不会擅自使用、复制、公开展示或向第三方提供你的图片。</p>
+      <p>3. 在当前本地版本中，图片仅在你的浏览器本地处理、不上传服务器，开发者在技术上无法访问、查看或保存你的图片。未来如推出联网版本，涉及图片上传、云端处理或存储的，将以更新后的协议与隐私政策为准，并另行明确告知。</p>
+      <p>4. 本条关于所有权的约定不影响你应遵守的第二条非商业使用限制，也不构成对任何第三方权利（包括原图权利人、被拍摄者、风格所涉摄影师等）的授权或担保。</p>
+
+      <h3>四、用户责任与内容规范</h3>
+      <p>1. 你应保证：你对所上传、选入、处理的图片享有合法权利或已获得充分授权，包括但不限于著作权、肖像权、隐私权等方面的授权，你的使用不侵犯任何第三方的合法权益。</p>
+      <p>2. 你不得利用本软件上传、处理、生成或传播含有下列内容的信息或图片：违反法律法规、危害国家安全、损害公共利益的内容；侵犯他人著作权、商标权、肖像权、名誉权、隐私权等合法权益的内容；淫秽、暴力、歧视、虚假欺诈或其他违法违规、违背公序良俗的内容。</p>
+      <p>3. 因你上传、处理、生成或使用图片引发的任何纠纷、索赔、处罚或损失，由你自行承担全部责任；如因此给开发者或第三方造成损失的，你应负责赔偿。开发者发现涉嫌违规内容的，有权在能力范围内停止提供相关功能或限制相关使用。</p>
+
+      <h3>五、知识产权</h3>
+      <p>1. 本软件的界面设计、程序、文字、风格短名与分类、风格参数组合、示例图、标识及其他内容，其知识产权归开发者或相应权利人所有，受法律保护。</p>
+      <p>2. 未经开发者或权利人事先书面同意，你不得复制、修改、传播、出售软件的任何部分，不得对软件进行反向工程、反编译或试图提取源代码与核心参数，不得删除或改变软件中的权利声明。</p>
+      <p>3. 软件内风格的灵感来源与公开摄影史资料有关，但风格短名与说明为开发者的整理表达。你不得冒用任何摄影师 / 大师的姓名、肖像、代表作品进行宣传、销售或牟利，不得使他人误认你或你的产品与相关摄影师存在授权、合作或背书关系。</p>
+
+      <h3>六、免责声明</h3>
+      <p>1. 风格模拟结果为基于参数的<strong>近似效果</strong>，受原图质量、设备显示、处理参数等因素影响。开发者不保证处理结果与任何摄影师的真实作品在风格、质量或艺术表现上一致，也不保证结果适用于任何特定目的。</p>
+      <p>2. 开发者不保证生成图片的<strong>商用合规性</strong>，不就图片是否侵犯第三方权利、是否符合广告、出版、平台规则等作出任何明示或默示担保。你将图片用于任何对外场景（无论是否商业）前，应自行核查权利与合规情况并承担相应责任。</p>
+      <p>3. 本软件按「现状」提供。开发者会尽力保持功能可用，但不保证服务不中断、无错误或完全安全；因设备、浏览器、网络、不可抗力等原因造成的处理失败、图片丢失或数据（包括本地保存的设置、收藏、记录）丢失，开发者在法律允许范围内不承担责任。请你自行备份重要原图与成果图。</p>
+      <p>4. 本软件可能包含指向第三方的内容或说明，开发者不对第三方内容的合法性、准确性负责。</p>
+
+      <h3>七、隐私与数据处理</h3>
+      <p>1. 当前本地版本中，你的照片在设备本地处理、不上传服务器；你的头像、名字、收藏、设置、上传风格、反馈草稿、邀请码记录等仅保存在你设备的浏览器本地存储中，不跨设备同步，开发者无法访问。你清除浏览器数据或使用页面内的「清除本地数据」功能后，上述本地数据将被删除且无法恢复。</p>
+      <p>2. 开发者不会在未经你同意的情况下收集、使用或向第三方提供你的个人信息。未来联网版本如需收集、存储或传输个人信息，将以届时公布的隐私政策为准，并在收集前依法告知并取得必要同意；新政策与本条不一致的，以新政策为准并会以显著方式提示。</p>
+
+      <h3>八、未成年人使用</h3>
+      <p>如你未满 18 周岁，应在监护人陪同下阅读本协议，并在取得监护人同意后使用本软件。监护人应加强对未成年人所上传图片与使用行为的监督；未成年人违反本协议造成的后果，由其监护人依法承担相应责任。</p>
+
+      <h3>九、禁止行为</h3>
+      <p>使用本软件时，你不得从事下列行为：</p>
+      <ul>
+        <li>违反法律法规或本协议约定使用本软件或生成图片；</li>
+        <li>冒用他人名义、冒用摄影师 / 大师姓名与代表作牟利；</li>
+        <li>破解、攻击、干扰软件或其本地数据的正常运行，批量抓取软件内容与参数；</li>
+        <li>将邀请码、账号（如有）出借、出售给他人，或以其他方式规避软件的使用限制；</li>
+        <li>其他损害开发者、其他用户或第三方合法权益的行为。</li>
+      </ul>
+
+      <h3>十、服务变更与终止</h3>
+      <p>1. 开发者有权根据运营与技术情况，更新、调整、暂停或终止本软件的部分或全部功能（包括风格、参数与页面），并会尽量以页面提示等方式告知。功能调整不构成违约。</p>
+      <p>2. 如你违反法律法规或本协议，开发者有权限制或终止向你提供服务；终止后，你仍应对终止前的行为承担责任。</p>
+
+      <h3>十一、法律适用与争议解决</h3>
+      <p>本协议的订立、生效、履行、解释及争议解决，均适用<strong>中华人民共和国法律</strong>（不含冲突法规则）。因本协议或使用本软件产生的争议，双方应先友好协商解决；协商不成的，任何一方可向开发者所在地有管辖权的人民法院提起诉讼。</p>
+
+      <h3>十二、协议变更与生效</h3>
+      <p>1. 本协议自你开始使用本软件时生效。<strong>使用本软件即表示你同意本协议。</strong></p>
+      <p>2. 开发者有权根据法律法规变化与功能调整修订本协议，修订后的协议将在本页面公布；如变更涉及你的主要权利义务，会以显著方式提示。修订公布后你继续使用本软件的，视为接受修订后的协议；如你不接受，应停止使用。</p>
+      <p>3. 本协议任何条款被认定为无效或不可执行的，不影响其他条款的效力。</p>
+
+      <p class="agree-meta">本协议为草案版本，随软件版本一并更新。正式公开发布或商业化运营前，请务必经专业律师审核。</p>
+      </div></div>
+    </div>
+  </div>
+</div>
+
+<!-- 第 2 层：试照片全屏（正在播放式） -->
+<div class="tryview" id="try-view" role="dialog" aria-modal="true" aria-label="用选中的风格处理我的照片">
+  <div class="try-inner">
+    <div class="try-topbar">
+      <div class="tt"><p>试我的照片</p><h3 id="try-title">试我的照片</h3></div>
+      <button type="button" class="x-btn" id="try-close" aria-label="关闭试照片，回到详情">✕</button>
+    </div>
+    <p class="ba-hint" id="try-desc" style="margin-top:8px"></p>
+    <div class="upload-zone" id="upload-zone">
+      <p>选一张照片，立刻在本机出效果。</p>
+      <label class="upload-btn" for="file-input">选择照片</label>
+      <input class="hidden-file" id="file-input" type="file" accept="image/jpeg,image/png,image/webp" />
+    </div>
+    <div class="ba-wrap" id="ba-wrap">
+      <div class="ba-stage" id="ba-stage" role="button" tabindex="0" aria-pressed="false" aria-label="生成图预览，当前显示处理后，点一下切换到原图，再点一下切回处理后">
+        <canvas class="proc" id="ba-canvas" aria-label="处理后的照片预览"></canvas>
+        <canvas class="orig-top" id="ba-orig-canvas" aria-hidden="true"></canvas>
+        <div class="ba-labels"><span id="ba-state-label">处理后</span></div>
+        <span class="swap-hint" id="ba-swap-hint">点击看原图</span>
+      </div>
+      <p class="ba-hint">点一下图片，就在原图和处理后之间平滑切换（交叉淡化），再点一次切回处理后。下方「风格强度」滑轮拖动时实时生效：0% 约为原图，100% 是满风格；点击切换是在当前强度下整图切换。</p>
+      <div class="controls">
+        <div>
+          <label for="strength-slider">风格强度 <output id="strength-out">75%</output></label>
+          <input type="range" id="strength-slider" min="0" max="100" value="75" />
+        </div>
+        <button type="button" class="dl-btn" id="download-btn">下载处理后的照片</button>
+        <p class="dl-status" id="dl-status" role="status" aria-live="polite"></p>
+        <div class="save-panel" id="save-panel" style="display:none">
+          <img id="save-img" alt="处理后的照片成品图，长按可以保存到相册" />
+          <p class="save-tip">没有自动下载也没关系：<strong>长按上面这张成品图</strong>，选「存储到照片 / 保存图片」就能存进相册，微信、QQ 内置浏览器同样适用。</p>
+          <button type="button" class="close-btn" id="open-img-btn">在新窗口打开处理后图片</button>
+        </div>
+        <button type="button" class="close-btn" id="change-photo-btn" style="align-self:flex-start">换一张照片</button>
+        <p class="note-local">照片只在本机处理，不上传 · 本地效果为调色近似，与成片预览会有差别</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 主题切换：深色 / 浅色，右上角常驻 -->
+<button type="button" class="theme-toggle" id="theme-toggle" aria-label="切换到深色主题">
+  <svg class="ic-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 13.2A8.2 8.2 0 1 1 10.8 4 6.6 6.6 0 0 0 20 13.2z"/></svg>
+  <svg class="ic-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5 5l1.7 1.7M17.3 17.3 19 19M19 5l-1.7 1.7M6.7 17.3 5 19"/></svg>
+</button>
+
+<!-- 底部导航（悬浮胶囊 · 液态玻璃，常驻） -->
+<nav class="tabbar" aria-label="主导航">
+  <span class="tab-ind" id="tab-ind" aria-hidden="true"></span>
+  <button type="button" id="nav-browse" aria-selected="true">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path class="fillp" d="M15.5 8.5 13.4 13.4 8.5 15.5 10.6 10.6z"/></svg>
+    <span class="tab-label">浏览</span>
+  </button>
+  <button type="button" id="nav-landscape" aria-selected="false">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="3"/><path d="M3 16.5 9 11l3.5 3L16 10.5l5 5.2"/><circle cx="9" cy="9" r="1.4"/></svg>
+    <span class="tab-label">风光</span>
+  </button>
+  <button type="button" id="nav-portrait" aria-selected="false">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.4" r="3.8"/><path d="M5 19.6c1.2-3.2 3.8-4.8 7-4.8s5.8 1.6 7 4.8"/></svg>
+    <span class="tab-label">人像</span>
+  </button>
+  <button type="button" id="nav-mine" aria-selected="false">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="9.6" r="3.1"/><path d="M6.2 18.6c1.3-2.7 3.3-4 5.8-4s4.5 1.3 5.8 4"/></svg>
+    <span class="tab-label">我的</span>
+  </button>
+</nav>
+
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="大图预览">
+  <div class="lb-head"><p id="lb-caption"></p><button type="button" id="lb-close">关闭</button></div>
+  <div class="lb-body" id="lb-body"><img id="lb-img" alt="" /></div>
+</div>
+
+<script>
+"use strict";
+/* 数据与测试版一致：19 个风格。breakdown / changes 仅供搜索索引，页面不展示。 */
+var BD = function(color,light,contrast,composition,texture){return{color:color,light:light,contrast:contrast,composition:composition,texture:texture};}
+var F = function(o){return o;}
+var DATA = [
+{id:"leibovitz",sec:"portrait",code:"PT-01",ver:"1.2.0",name:"追光",region:"国外",colorType:"彩色",tagline:"明星肖像，戏剧化布光和场景叙事",keywords:["戏剧布光","场景叙事","饱满色彩"],breakdown:BD("饱满浓郁，暖调里压着深沉的暗部","戏剧化侧光，把人物从环境里“打”出来","强，明暗反差大，如舞台追光","人物是场景的绝对主角，环境为人物叙事服务","电影般的厚重影调与细腻颗粒"),changes:"光线变戏剧、色彩变饱满、主体更突出",preview:"assets/2164969b6f3d.webp",work:"assets/fe5cd67269de.jpg",workTitle:"《约翰·列侬与小野洋子》1980",filter:F({b:1.02,c:1.25,s:1.25,g:0,sep:0.15,hue:-5,vig:0.35})},
+{id:"avedon",sec:"portrait",code:"PT-02",ver:"1.2.0",name:"纯白",region:"国外",colorType:"黑白",tagline:"白底极简肖像，抓人物的性格和脆弱感",keywords:["白底极简","直视","性格感"],breakdown:BD("转为黑白，去掉一切色彩干扰","高调均匀，背景亮到接近纯白","强，主体轮廓与神态被锐利地剥离出来","人物正面居中，动作与表情被放到最大","皮肤纹理与神态细节毫不留情地保留"),changes:"转黑白、背景提亮、人物性格感被放大",preview:"assets/83e660c8ee92.webp",work:"assets/10c6e59b5a51.jpg",workTitle:"《多维玛与大象》1955",filter:F({b:1.18,c:1.3,s:0,g:1,sep:0,hue:0,vig:0.05})},
+{id:"penn",sec:"portrait",code:"PT-03",ver:"1.2.0",name:"灰阶",region:"国外",colorType:"黑白",tagline:"棚内静物式肖像，简洁优雅",keywords:["棚内简洁","优雅灰调","克制"],breakdown:BD("黑白，灰阶过渡细腻绵长","柔和的单向棚灯，光比克制","适中，靠灰调层次而不是反差说话","背景简化成素墙与角落，人物如静物般安放","铂金印相般的细腻与沉静"),changes:"转黑白、光影变柔和克制、背景更素净",preview:"assets/84142c27e7ee.webp",work:"assets/ff74bf07dbcd.jpg",workTitle:"《斯宾塞·屈塞角落肖像》1948",filter:F({b:1.05,c:1.05,s:0,g:1,sep:0.08,hue:0,vig:0.18})},
+{id:"mccurry",sec:"portrait",code:"PT-04",ver:"1.2.1",note:"换图原因：瞳孔颜色修复（2026-10-28 更换为人像成片，瞳孔为自然深棕 / 黑色）",name:"浓彩",region:"国外",colorType:"彩色",tagline:"《阿富汗少女》，浓烈色彩的人文肖像",keywords:["浓烈色彩","直视眼神","人文感"],breakdown:BD("浓烈饱和，暖调与撞色并存","自然光柔和包裹面部，如窗边光","适中偏强，眼神是全画面的最高点","贴近主体的纪实视角，直视镜头","胶片般的细腻颗粒与真实肤质"),changes:"色彩变浓烈、眼神更突出、肤质更真实",preview:"assets/72e8089cf666.webp",work:"assets/5c0614cd2d6c.jpg",workTitle:"《阿富汗少女》1984",filter:F({b:1.05,c:1.15,s:1.45,g:0,sep:0.12,hue:0,vig:0.15})},
+{id:"schoeller",sec:"portrait",code:"PT-05",ver:"1.2.0",name:"肌理",region:"国外",colorType:"彩色",tagline:"超近距离直视镜头，细节极致的肖像",keywords:["超近距离","极致细节","直视"],breakdown:BD("自然干净，肤色真实不修饰","均匀柔和的正面光，面部阴影极轻","适中干净，不走戏剧化明暗","头部特写居中，眼神是画面中心","细节极锐，毛孔、毛发纹理全部保留"),changes:"面部细节更锐、光线更均匀、肤色更自然",preview:"assets/1d18295e9a88.webp",work:"assets/532992e4f452.jpg",workTitle:"《奥巴马特写肖像》",filter:F({b:1.08,c:1.08,s:1.05,g:0,sep:0,hue:0,vig:0.05})},
+{id:"xiaoquan",sec:"portrait",code:"PT-06",ver:"1.2.0",name:"岁月",region:"国内",colorType:"黑白",tagline:"《我们这一代》，自然光下的文化名人肖像",keywords:["自然光","平实","时代感"],breakdown:BD("黑白，去掉色彩后只剩人与时代","纯自然光，不布灯、不干预现场","柔和，灰调平实绵长","人物站在真实环境里，现场感即构图","粗粝的胶片颗粒与岁月感"),changes:"转黑白、只留自然光的平实感、时代气息加重",preview:"assets/11af9fbe5591.webp",work:"assets/777898e58391.jpg",workTitle:"《我们这一代》封面 · 崔健肖像",filter:F({b:1.0,c:0.95,s:0,g:1,sep:0.1,hue:0,vig:0.2})},
+{id:"chenman",sec:"portrait",code:"PT-07",ver:"1.2.0",name:"绯红",region:"国内",colorType:"彩色",tagline:"时尚大片，东方美学加后期合成",keywords:["时尚大片","东方美学","精修质感"],breakdown:BD("浓艳大胆，高饱和的东方色彩","精致棚光，皮肤被打磨得光洁","强，画面华丽醒目","大片式造型感，人物与色彩成构成关系","精修后的光滑高级质感"),changes:"色彩更浓艳、皮肤更精修、画面更“大片”",preview:"assets/3cc41d22e443.webp",work:"assets/f0115a711d74.jpg",workTitle:"佟丽娅 · 红牡丹时尚肖像",filter:F({b:1.06,c:1.2,s:1.5,g:0,sep:0.05,hue:-8,vig:0.12})},
+{id:"xiehailong",sec:"portrait",code:"PT-08",ver:"1.2.0",name:"素朴",region:"国内",colorType:"黑白",tagline:"希望工程“大眼睛”，纪实人像",keywords:["纪实","自然光","真实情绪"],breakdown:BD("以黑白纪实为主，彩色也力求真实平实","现场自然光，完全不干预","适中，情绪优先于影调","贴近主体的纪实视角，如在场旁观","未修饰的真实与粗粝"),changes:"影调转平实纪实、情绪被突出、去掉一切修饰",preview:"assets/d970668898d8.webp",work:"assets/94892fd35b64.jpg",workTitle:"《大眼睛》（苏明娟）1991",filter:F({b:0.98,c:1.02,s:0.1,g:0.9,sep:0.15,hue:0,vig:0.18})},
+{id:"yinchao",sec:"portrait",code:"PT-09",ver:"1.2.0",name:"利落",region:"国内",colorType:"黑白",tagline:"明星杂志时尚肖像",keywords:["杂志时尚","干净布光","精致"],breakdown:BD("干净高级，常以黑白或低饱和呈现","精准的杂志式布光，轮廓分明","利落，人物从背景中干净地分离","造型感强，姿态本身即构图","精致细腻的商业精修质感"),changes:"布光更干净利落、质感更精致、时尚感拉满",preview:"assets/f662873cdc05.webp",work:"assets/2d1e3ee81b72.jpg",workTitle:"哈苏大使页收录的黑白时尚肖像（花与人像）",filter:F({b:1.05,c:1.2,s:0,g:1,sep:0,hue:0,vig:0.15})},
+{id:"wujialin",sec:"portrait",code:"PT-10",ver:"1.2.0",name:"山野",region:"国内",colorType:"黑白",tagline:"云南少数民族纪实肖像，自然真实",keywords:["纪实","自然真实","环境肖像"],breakdown:BD("黑白，只留人与生活的本真","山野间的自然光，不摆拍、不布光","适中，灰调丰富而厚实","环境肖像，人物与生活场景融为一体","胶片纪实的朴素颗粒"),changes:"转黑白、灰调变厚实、生活气息更浓",preview:"assets/371bf85fab67.webp",work:"assets/2d3ea7db6a2b.jpg",workTitle:"《云南山里人》系列 · 彝族老人肖像",filter:F({b:0.98,c:1.05,s:0,g:1,sep:0.12,hue:0,vig:0.22})},
+{id:"adams",sec:"landscape",code:"LS-01",ver:"1.2.0",name:"全阶",region:"国外",colorType:"黑白",tagline:"黑白风光，区域曝光法，优胜美地",keywords:["黑白","区域曝光","深邃影调"],breakdown:BD("黑白，以完整的区域曝光影调代替色彩","从死黑到亮白的全影调，每一阶都有细节","强，天空与云层如雕塑般立体","前景—中景—远景层次分明，纵深拉满","大画幅的极致锐利与细腻"),changes:"转黑白、影调拉满、天空云层更立体",preview:"assets/b5d7732dbed0.webp",previewCity:"assets/6968858ae451.webp",work:"assets/fcc1f408275a.jpg",workTitle:"《优胜美地 · 冬雪初晴》约1944",filter:F({b:1.05,c:1.35,s:0,g:1,sep:0,hue:0,vig:0.2})},
+{id:"kenna",sec:"landscape",code:"LS-02",ver:"1.2.0",name:"雾海",region:"国外",colorType:"黑白",tagline:"极简黑白长曝光，水墨感",keywords:["极简黑白","长曝光","水墨感"],breakdown:BD("黑白，灰阶如水墨晕染","长曝光把水面与天空磨成雾面","柔和，靠留白与深灰呼吸","极简，主体孤绝、大量空无","银盐般的细腻与冥想式的静"),changes:"转黑白、水面变雾面、画面更空更静",preview:"assets/821032d93f3b.webp",previewCity:"assets/97878dce259a.webp",work:"assets/c1aad53ca247.jpg",workTitle:"《屈斜路湖之树 · 北海道》",filter:F({b:1.1,c:0.85,s:0,g:1,sep:0.05,hue:0,vig:0.3,blur:0.4})},
+{id:"rowell",sec:"landscape",code:"LS-03",ver:"1.2.0",name:"暮光",region:"国外",colorType:"彩色",tagline:"彩色山地风光，追逐极致光线",keywords:["彩色山地","极致光线","通透"],breakdown:BD("通透饱和，是自然光能到达的极限色彩","只等一天中“神奇光线”的那一瞬","强，天空与大地明暗对冲","动态视角，前景压近、远景辽阔","锐利通透的胶片感"),changes:"色彩更通透、黄昏光推到极限、空气感更清",preview:"assets/1cf1f187dd57.webp",previewCity:"assets/f42acee549e4.webp",work:"assets/7962abbf98d3.jpg",workTitle:"《布达拉宫的彩虹》1981",filter:F({b:1.08,c:1.2,s:1.4,g:0,sep:0.05,hue:0,vig:0.1})},
+{id:"lik",sec:"landscape",code:"LS-04",ver:"1.2.0",name:"熔光",region:"国外",colorType:"彩色",tagline:"大画幅浓艳彩色风光",keywords:["大画幅","浓艳","锐利细节"],breakdown:BD("极端浓艳，高饱和到近乎燃烧","戏剧性的光束与深暗部并存","极强，明暗两端都推满","全景式沉浸构图，包围观者","大画幅的锐利与油亮的光泽感"),changes:"色彩浓艳度拉满、光影更戏剧、细节更锐",preview:"assets/f71078b5a44e.webp",previewCity:"assets/1817a731e184.webp",work:"assets/a1998a52a98d.jpg",workTitle:"《Hidden Beauty》（羚羊峡谷）",filter:F({b:1.05,c:1.35,s:1.7,g:0,sep:0.05,hue:0,vig:0.25})},
+{id:"salgado",sec:"landscape",code:"LS-05",ver:"1.2.0",name:"银灰",region:"国外",colorType:"黑白",tagline:"《创世纪》，史诗级黑白自然",keywords:["史诗黑白","大气","厚重影调"],breakdown:BD("黑白，影调厚重如史诗","高光如银、暗部深沉，气象宏大","强而绵密，灰阶层层堆叠","史诗尺度，生命与大地同框","粗粝而庄严的胶片质感"),changes:"转黑白、影调变厚重、高光更耀眼",preview:"assets/a671ca578d58.webp",previewCity:"assets/60eb9d6ca2e3.webp",work:"assets/fa2ac52e4a3b.jpg",workTitle:"《创世纪》 · 南极企鹅与冰山",filter:F({b:1.02,c:1.3,s:0,g:1,sep:0.05,hue:0,vig:0.28})},
+{id:"wangwusheng",sec:"landscape",code:"LS-06",ver:"1.2.0",name:"墨沉",region:"国内",colorType:"黑白",tagline:"三十年拍黄山，黑白“金刚黑”，如水墨画",keywords:["黑白黄山","水墨","厚重"],breakdown:BD("黑白，云海是光、山体是墨","雾气流动处即是光的形状","极强，“金刚黑”沉沉压住画面","峰峦层叠，如展开的山水长卷","水墨晕染般的灰阶过渡"),changes:"转黑白、黑位压得更沉、云雾更如水墨",preview:"assets/b1d423cd3972.webp",previewCity:"assets/2cedf7d3c4c6.webp",work:"assets/8db59faaa3df.jpg",workTitle:"《黄山云海》",filter:F({b:0.95,c:1.4,s:0,g:1,sep:0,hue:0,vig:0.3})},
+{id:"gaopengfei",sec:"landscape",code:"LS-07",ver:"1.2.0",name:"天光",region:"国内",colorType:"彩色",tagline:"数十年拍长白山，恢弘大气",keywords:["恢弘","大气","辽阔"],breakdown:BD("壮阔的自然色，也善用黑白雪境","大山大水的宏阔光影","强，气象万千不平淡","辽阔全景，气势优先于细节","厚重扎实，如山体本身"),changes:"气势更恢弘、空间更辽阔、气象感更强",preview:"assets/828ce0d2ceb9.webp",previewCity:"assets/dca4dda27d76.webp",work:"assets/57f779c3f810.jpg",workTitle:"《长白山冬境》",filter:F({b:1.05,c:1.25,s:1.3,g:0,sep:0.18,hue:-5,vig:0.15})},
+{id:"langjingshan",sec:"landscape",code:"LS-08",ver:"1.2.0",name:"留白",region:"国内",colorType:"黑白",tagline:"集锦摄影，中国画意风光的鼻祖",keywords:["中国画意","集锦","留白"],breakdown:BD("黑白，只剩墨色浓淡","雾气即光，虚实相生","柔，靠留白让画面呼吸","中国画式散点透视与大面积留白","宣纸水墨般的温润晕染"),changes:"转黑白、雾气更重、留白更空灵、画意更浓",preview:"assets/0581ed17373f.webp",previewCity:"assets/3af03c1fed5b.webp",work:"assets/8ab70e70e949.jpg",workTitle:"集锦山水",filter:F({b:1.12,c:0.8,s:0,g:1,sep:0.08,hue:0,vig:0.1,blur:0.3})},
+{id:"chicago",sec:"landscape",code:"CU-01",ver:"1.2.0",name:"芝加哥",region:"自定义",colorType:"彩色",custom:true,tagline:"城市街景调色：压暗，暗部暖黄、高光冷蓝",keywords:["暖黄暗部","冷蓝高光","冷暖分离"],breakdown:null,changes:"",preview:"assets/1d6babb32c53.webp",previewCity:"assets/c33f64fc7f64.webp",work:"assets/606a420b6a1e.jpg",workTitle:"路口调色后示例",filter:F({b:0.92,c:1.15,s:0.86,g:0,sep:0.18,hue:-10,vig:0.25})}
+];
+var SAMPLES = {
+  portrait:[{img:"assets/c1c3a6896abb.jpg",label:"人像示例图",caption:"人像示例图 · 原图"}],
+  landscape:[
+    {img:"assets/f8c89c69ef06.jpg",label:"江南河边黄昏",caption:"风光示例图 · 江南河边黄昏",id:"jiangnan"},
+    {img:"assets/a03f0374ef8a.jpg",label:"城市夜景圣诞穹顶",caption:"风光示例图 · 城市夜景圣诞穹顶",id:"city"}
+  ]
+};
+var SECTION_LABEL={portrait:"人像",landscape:"风光"};
+var PAGE_LABEL={browse:"浏览",landscape:"风光",portrait:"人像",mine:"我的"};
+var PAGE_ORDER=["browse","landscape","portrait","mine"];
+var state={page:"browse",landscapeIdx:0,region:"all",color:"all",category:"all",sort:"asc",search:"",filterOpen:false,selected:null,detailId:null,cardModes:{}};
+var pageScroll={browse:0,landscape:0,portrait:0,mine:0};
+
+/* 收藏：只记在浏览器本地（localStorage），不上传。首次打开默认已收藏芝加哥，方便后续更新对照。 */
+var FAV_KEY="bemaster-minimal-favorites-v1";
+var favorites=(function(){
+  try{
+    var raw=localStorage.getItem(FAV_KEY);
+    if(raw!==null){
+      var arr=JSON.parse(raw);
+      if(Object.prototype.toString.call(arr)==="[object Array]"){
+        return arr.filter(function(id){return DATA.some(function(p){return p.id===id;});});
+      }
+    }
+  }catch(e){}
+  return ["chicago"];
+})();
+/* ============ 本地数据层（为未来联网版 / App 预留结构） ============
+   本页是静态页、没有服务器账号：以下数据只保存在访客自己浏览器的本地存储里，
+   不跨设备同步、不上传服务器。但数据按以后能直接迁移 / 同步到服务器的方式组织：
+   - 每类数据一个独立、稳定的存储键，字段名固定，不把不同数据混在一起；
+   - profile.deviceId 是「设备 ID」，不是账号：以后登录时可把它映射 / 绑定到服务器账号 ID
+     （profile.accountId 预留，当前恒为 null，不假装已登录）；
+   - 头像与上传风格的图片保存原图数据（dataUrl）加完整元数据（文件名 / 类型 / 字节数 /
+     宽高 / 时间），不做裁剪或有损重压缩，以后可原样上传到服务器对象存储；
+   - feedback 每条都是以后接口要收的完整形状（类型 / 内容 / 联系方式 / 时间 / 版本 / 设备），
+     以后只需把「本地保存」换成「发送到接口」，表单与字段都不用改。 */
+var STORE_KEYS={
+  profile:"bemaster-minimal-profile",
+  settings:"bemaster-minimal-settings",
+  favorites:FAV_KEY,
+  userStyles:"bemaster-minimal-user-styles",
+  feedback:"bemaster-minimal-feedback",
+  invite:"bemaster-minimal-invite",
+  inviteApplications:"bemaster-minimal-invite-applications"
+};
+function storeRead(key,fallback){
+  try{var raw=localStorage.getItem(key);if(raw!==null){var v=JSON.parse(raw);if(v!==null&&typeof v==="object")return v;}}catch(e){}
+  return fallback;
+}
+function storeWrite(key,value){
+  try{localStorage.setItem(key,JSON.stringify(value));return true;}catch(e){return false;}
+}
+function nowISO(){return new Date().toISOString();}
+
+/* 用户信息：{displayName, avatarImage, deviceId, accountId, createdAt, updatedAt} */
+var profile=(function(){
+  var p=storeRead(STORE_KEYS.profile,null);
+  if(!p||typeof p!=="object"){
+    p={displayName:"摄影爱好者",avatarImage:null,deviceId:"",accountId:null,createdAt:nowISO(),updatedAt:nowISO()};
+  }
+  if(!p.deviceId){
+    var chars="ABCDEFGHJKMNPQRSTUVWXYZ23456789",code="";
+    for(var i=0;i<6;i++)code+=chars.charAt(Math.floor(Math.random()*chars.length));
+    p.deviceId="BE-"+code;
+    p.updatedAt=nowISO();
+    storeWrite(STORE_KEYS.profile,p);
+  }
+  if(typeof p.displayName!=="string"||!p.displayName)p.displayName="摄影爱好者";
+  if(!("avatarImage" in p))p.avatarImage=null;
+  if(!("accountId" in p))p.accountId=null;
+  return p;
+})();
+function saveProfile(){profile.updatedAt=nowISO();return storeWrite(STORE_KEYS.profile,profile);}
+
+/* 通用设置：{fontSize, colorMode, reduceMotion, defaultStrength, updatedAt}
+   colorMode 三档：light=白色 / dark=黑色 / system=跟随系统 */
+var settings=(function(){
+  var d={fontSize:"standard",colorMode:"system",reduceMotion:false,defaultStrength:75,updatedAt:nowISO()};
+  var s=storeRead(STORE_KEYS.settings,null);
+  if(s&&typeof s==="object"){
+    if(["small","standard","large","xlarge"].indexOf(s.fontSize)>-1)d.fontSize=s.fontSize;
+    if(["light","dark","system"].indexOf(s.colorMode)>-1)d.colorMode=s.colorMode;
+    d.reduceMotion=!!s.reduceMotion;
+    if([50,75,100].indexOf(s.defaultStrength)>-1)d.defaultStrength=s.defaultStrength;
+  }else{
+    /* 兼容旧版右上角主题切换留下的选择：bemaster-minimal-theme（light / dark） */
+    try{var legacy=localStorage.getItem("bemaster-minimal-theme");if(legacy==="light"||legacy==="dark")d.colorMode=legacy;}catch(e){}
+  }
+  return d;
+})();
+function saveSettings(){settings.updatedAt=nowISO();return storeWrite(STORE_KEYS.settings,settings);}
+
+/* 上传的个人风格：[{id, name, intro, image:{dataUrl 及原图元数据}, source, createdAt, updatedAt}] */
+var userStyles=(function(){
+  var arr=storeRead(STORE_KEYS.userStyles,[]);
+  return Object.prototype.toString.call(arr)==="[object Array]"?arr:[];
+})();
+function saveUserStyles(){return storeWrite(STORE_KEYS.userStyles,userStyles);}
+
+/* 用户反馈（本地保存的完整提交形状）：[{id, type, content, contact, createdAt, appVersion, deviceInfo}] */
+var feedbackLog=(function(){
+  var arr=storeRead(STORE_KEYS.feedback,[]);
+  return Object.prototype.toString.call(arr)==="[object Array]"?arr:[];
+})();
+function saveFeedbackLog(){return storeWrite(STORE_KEYS.feedback,feedbackLog);}
+
+/* 邀请码（本地记录）：inviteState={code, enteredAt, verificationStatus}，verificationStatus 恒为
+   "not-verified-local-only"——联网验证未接入，绝不假装已验证通过、不编造可用码；
+   inviteApplications=[{id, name, contact, reason, createdAt, appVersion, status}]，status 恒为
+   "pending-local-only"（仅本地保存、待审核、未联网发送） */
+var inviteState=(function(){
+  var v=storeRead(STORE_KEYS.invite,null);
+  if(v&&typeof v==="object"&&typeof v.code==="string"&&v.code)return v;
+  return null;
+})();
+function saveInvite(){return inviteState?storeWrite(STORE_KEYS.invite,inviteState):(function(){try{localStorage.removeItem(STORE_KEYS.invite);}catch(e){}return true;})();}
+var inviteApplications=(function(){
+  var arr=storeRead(STORE_KEYS.inviteApplications,[]);
+  return Object.prototype.toString.call(arr)==="[object Array]"?arr:[];
+})();
+function saveInviteApplications(){return storeWrite(STORE_KEYS.inviteApplications,inviteApplications);}
+
+/* 主题：页面颜色三档由 settings.colorMode 决定；右上角切换按钮与「我的」页设置同步 */
+function currentTheme(){return document.documentElement.getAttribute("data-theme")==="dark"?"dark":"light";}
+function systemTheme(){return (window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light";}
+function applySettings(){
+  document.documentElement.setAttribute("data-theme",
+    settings.colorMode==="system"?systemTheme():settings.colorMode);
+  document.documentElement.setAttribute("data-font",settings.fontSize);
+  if(settings.reduceMotion)document.documentElement.setAttribute("data-motion","reduce");
+  else document.documentElement.removeAttribute("data-motion");
+  if(typeof syncThemeBtn==="function")syncThemeBtn();
+  if(typeof renderSettings==="function")renderSettings();
+}
+function syncThemeBtn(){var dark=currentTheme()==="dark";var b=$("theme-toggle");if(b){b.setAttribute("aria-label",dark?"切换到浅色主题":"切换到深色主题");b.setAttribute("aria-pressed",dark?"true":"false");}}
+/* 右上角按钮：在当前显示的深浅之间手动切换，并同步写进 settings.colorMode（与「我的」页设置一致） */
+$("theme-toggle").addEventListener("click",function(){
+  settings.colorMode=(currentTheme()==="dark")?"light":"dark";
+  saveSettings();applySettings();
+});
+if(window.matchMedia){
+  var themeMq=window.matchMedia("(prefers-color-scheme: dark)");
+  var onThemeSys=function(){if(settings.colorMode==="system")applySettings();};
+  if(themeMq.addEventListener)themeMq.addEventListener("change",onThemeSys);
+  else if(themeMq.addListener)themeMq.addListener(onThemeSys);
+}
+syncThemeBtn();
+
+function isFav(id){return favorites.indexOf(id)>-1;}
+function saveFavorites(){try{localStorage.setItem(FAV_KEY,JSON.stringify(favorites));}catch(e){}}
+function toggleFav(id){var i=favorites.indexOf(id);if(i>-1)favorites.splice(i,1);else favorites.push(id);saveFavorites();}
+
+function pageIncludes(page,p){
+  if(page==="browse")return true;
+  if(page==="mine")return isFav(p.id);
+  if(page==="landscape")return p.sec==="landscape"&&!p.custom;
+  return p.sec===page;
+}
+function sampleFor(p){
+  if(p.sec==="landscape"){var s=currentLandscapeSample();return{img:s.img,label:s.caption};}
+  return{img:SAMPLES.portrait[0].img,label:"人像示例图"};
+}
+function $(id){return document.getElementById(id);}
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function currentLandscapeSample(){return SAMPLES.landscape[state.landscapeIdx]||SAMPLES.landscape[0];}
+function effectivePreview(p){
+  if(p.sec==="landscape"&&currentLandscapeSample().id==="city")return p.previewCity||p.preview;
+  return p.preview;
+}
+function byId(id){for(var i=0;i<DATA.length;i++)if(DATA[i].id===id)return DATA[i];return null;}
+var HEART_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>';
+
+/* Lightbox（轮播示例图放大） */
+function openLightbox(src,alt,caption){var im=$("lb-img");im.src=src;im.alt=alt;$("lb-caption").textContent=caption;$("lightbox").classList.add("open");document.body.style.overflow="hidden";}
+function closeLightbox(){$("lightbox").classList.remove("open");if(!$("detail-sheet").classList.contains("open")&&!$("try-view").classList.contains("open")&&!$("lib-sheet").classList.contains("open")&&!$("settings-sheet").classList.contains("open")&&!$("submit-sheet").classList.contains("open"))document.body.style.overflow="";$("lb-img").src="";}
+$("car-prev").addEventListener("click",function(){carGo(-1);});
+$("car-next").addEventListener("click",function(){carGo(1);});
+$("lb-close").addEventListener("click",closeLightbox);
+$("lb-body").addEventListener("click",closeLightbox);
+document.addEventListener("keydown",function(e){
+  if(e.key!=="Escape")return;
+  if($("lightbox").classList.contains("open"))closeLightbox();
+  else if($("try-view").classList.contains("open"))closeTry();
+  else if($("lib-sheet").classList.contains("open"))closeLib();
+  else if($("detail-sheet").classList.contains("open"))closeDetail();
+  else if($("settings-sheet").classList.contains("open"))closeSettings();
+  else if($("submit-sheet").classList.contains("open"))closeSubmit();
+  else if($("invite-sheet").classList.contains("open"))closeInvite();
+  else if($("agreement-sheet").classList.contains("open"))closeAgreement();
+});
+
+/* 轮播（阻尼滑动，循环，与原版一致；位于浏览页，展示风光示例图） */
+var car={dragging:false,startX:null,offset:0,vel:0,last:null,suppress:false,width:320,pos:0};
+function renderCarousel(){
+  var slides=SAMPLES.landscape;
+  var idx=state.landscapeIdx;
+  var loop=slides.length>1;
+  var track=$("carousel-track");track.innerHTML="";
+  var renderList=loop?[slides[slides.length-1]].concat(slides,[slides[0]]):slides;
+  renderList.forEach(function(slide,j){
+    var realIdx=loop?((j-1+slides.length)%slides.length):j;
+    var isCurrent=realIdx===idx;
+    var isClone=loop&&(j===0||j===renderList.length-1);
+    var d=document.createElement("div");d.className="carousel-slide";d.setAttribute("aria-hidden",isCurrent?"false":"true");
+    var im=document.createElement("img");im.src=slide.img;im.alt="示例图原图";im.draggable=false;im.loading="eager";
+    var holder;
+    if(isClone){
+      holder=document.createElement("div");holder.className="slide-ph";holder.setAttribute("aria-hidden","true");
+    }else{
+      holder=document.createElement("button");holder.type="button";holder.setAttribute("aria-label","放大查看"+slide.caption);holder.tabIndex=isCurrent?0:-1;
+    }
+    holder.appendChild(im);
+    (function(sl,h){h.addEventListener("click",function(){if(car.suppress){car.suppress=false;return;}openLightbox(sl.img,"示例图原图",sl.caption+" · 原图");});})(slide,holder);
+    d.appendChild(holder);track.appendChild(d);
+  });
+  car.pos=loop?idx+1:idx;
+  applyCarTransform(false);
+  var cur=slides[idx];
+  $("car-name").textContent=loop?cur.label:"";
+  $("car-name").style.display=loop?"":"none";
+  $("car-count").textContent=loop?(idx+1)+"/"+slides.length:"";
+  $("car-count").style.display=loop?"":"none";
+  $("car-prev").style.display=loop?"flex":"none";
+  $("car-next").style.display=loop?"flex":"none";
+  $("car-hint").classList.toggle("show",loop);
+  var dots=$("car-dots");dots.innerHTML="";
+  if(loop){slides.forEach(function(sl,i){var db=document.createElement("button");db.type="button";db.setAttribute("aria-label","查看第"+(i+1)+"张示例图");if(i===idx)db.setAttribute("aria-current","true");var sp=document.createElement("span");db.appendChild(sp);db.addEventListener("pointerdown",function(e){e.stopPropagation();});db.addEventListener("click",function(e){e.stopPropagation();setCarIndex(i);});dots.appendChild(db);});}
+}
+function carGo(dir){
+  var slides=SAMPLES.landscape;var n=slides.length;if(n<2)return;
+  var targetPos=car.pos+dir;
+  var targetIdx=((state.landscapeIdx+dir)%n+n)%n;
+  car.pos=targetPos;applyCarTransform(true);
+  setTimeout(function(){state.landscapeIdx=targetIdx;renderCarousel();renderLists();},400);
+}
+function setCarIndex(i){state.landscapeIdx=i;renderCarousel();renderLists();}
+function applyCarTransform(animate){
+  var track=$("carousel-track");
+  track.style.transition=car.dragging?"none":(animate===false?"none":"transform 380ms cubic-bezier(0.22,1.28,0.36,1)");
+  track.style.transform="translateX(calc("+(-car.pos*100)+"% + "+car.offset+"px))";
+}
+(function(){
+  var el=$("carousel");
+  function damped(raw){
+    var slides=SAMPLES.landscape;
+    if(slides.length<2){var lim=car.width*0.65;var dx0=Math.abs(raw)>lim?Math.sign(raw)*(lim+(Math.abs(raw)-lim)*0.25):raw;return dx0;}
+    var dx=raw;var limit=car.width*0.9;
+    if(Math.abs(dx)>limit)dx=Math.sign(dx)*(limit+(Math.abs(dx)-limit)*0.3);
+    return dx;
+  }
+  el.addEventListener("pointerdown",function(e){car.width=el.clientWidth;car.startX=e.clientX;car.last={x:e.clientX,t:performance.now()};car.vel=0;car.suppress=false;car.dragging=true;car.offset=0;applyCarTransform(false);});
+  el.addEventListener("pointermove",function(e){if(car.startX===null||!car.dragging)return;var dx=e.clientX-car.startX;if(Math.abs(dx)>8)car.suppress=true;var now=performance.now();if(car.last&&now>car.last.t){var inst=(e.clientX-car.last.x)/(now-car.last.t);car.vel=car.vel*0.65+inst*0.35;}car.last={x:e.clientX,t:now};car.offset=damped(dx);applyCarTransform(false);});
+  function end(e){
+    if(car.startX===null)return;var slides=SAMPLES.landscape;var raw=e.clientX-car.startX;
+    var far=Math.abs(raw)>=car.width*0.22;var flick=Math.abs(car.vel)>=0.45&&Math.abs(raw)>=24&&Math.sign(car.vel)===Math.sign(raw);
+    car.dragging=false;car.offset=0;car.startX=null;
+    if((far||flick)&&raw<0&&slides.length>1)carGo(1);
+    else if((far||flick)&&raw>0&&slides.length>1)carGo(-1);
+    else applyCarTransform(true);
+  }
+  el.addEventListener("pointerup",end);
+  el.addEventListener("pointercancel",function(){car.dragging=false;car.offset=0;car.startX=null;applyCarTransform(true);});
+})();
+
+/* 筛选 / 搜索 */
+function norm(s){return String(s).toLowerCase().replace(/[\s\-_]/g,"");}
+function matchesSearch(p){
+  var q=state.search.trim().toLowerCase();if(!q)return true;
+  var b=p.breakdown||{color:"",light:"",contrast:"",composition:"",texture:""};
+  var combined=[b.color,b.light,b.contrast,b.composition,b.texture].join(" ");
+  var warmCold=(combined.indexOf("暖")>-1&&combined.indexOf("冷")>-1)?"冷暖分离 冷暖":"";
+  var typeTerms=p.custom?"自定义 自定义风格 custom":"摄影大师 大师 master";
+  var sectionTerms=p.sec==="portrait"?"人像 portrait PT":(p.custom?"风光 landscape 自定义 CU":"风光 landscape LS");
+  var searchable=[p.name,p.code,p.code.replace("-",""),p.region,p.colorType,p.tagline,(p.keywords||[]).join(" "),b.color,b.light,b.contrast,b.composition,b.texture,p.changes,SECTION_LABEL[p.sec],typeTerms,sectionTerms,warmCold].join(" ").toLowerCase();
+  if(searchable.indexOf(q)>-1||norm(searchable).indexOf(norm(q))>-1)return true;
+  var toks=q.split(/[\s,，、]+/).filter(Boolean);
+  if(toks.length>1)return toks.every(function(t){return searchable.indexOf(t)>-1||norm(searchable).indexOf(norm(t))>-1;});
+  return false;
+}
+function matchesFilters(page,p){
+  if(!pageIncludes(page,p))return false;
+  if(state.region==="domestic"&&p.region!=="国内")return false;
+  if(state.region==="foreign"&&p.region!=="国外")return false;
+  if(state.color==="bw"&&p.colorType!=="黑白")return false;
+  if(state.color==="color"&&p.colorType!=="彩色")return false;
+  if(state.category==="master"&&p.custom)return false;
+  if(state.category==="custom"&&!p.custom)return false;
+  return matchesSearch(p);
+}
+function filteredList(page){
+  var list=DATA.filter(function(p){return matchesFilters(page,p);});
+  if(state.sort==="desc")list=list.slice().reverse();
+  return list;
+}
+var FILTER_GROUPS=[
+ {key:"category",label:"分类",options:[["all","全部"],["master","摄影大师"],["custom","自定义风格"]]},
+ {key:"region",label:"地域",options:[["all","全部"],["domestic","国内"],["foreign","国外"]]},
+ {key:"color",label:"色彩",options:[["all","全部"],["bw","黑白"],["color","彩色"]]},
+ {key:"sort",label:"排序",options:[["asc","正序"],["desc","倒序"]]}
+];
+function renderFilters(){
+  var inner=$("filter-inner");inner.innerHTML="";
+  FILTER_GROUPS.forEach(function(g){
+    var row=document.createElement("div");row.className="fgroup";
+    var lab=document.createElement("span");lab.className="flabel";lab.textContent=g.label;row.appendChild(lab);
+    var opts=document.createElement("div");opts.className="opts";opts.setAttribute("role","radiogroup");opts.setAttribute("aria-label",g.label);
+    g.options.forEach(function(o){
+      var b=document.createElement("button");b.type="button";b.textContent=o[1];b.setAttribute("role","radio");b.setAttribute("aria-checked",state[g.key]===o[0]?"true":"false");b.setAttribute("aria-label",g.label+"："+o[1]);
+      b.addEventListener("click",function(){state[g.key]=o[0];renderFilters();renderLists();updateFilterDot();});
+      opts.appendChild(b);
+    });
+    row.appendChild(opts);inner.appendChild(row);
+  });
+}
+function filtersActive(){return state.region!=="all"||state.color!=="all"||state.category!=="all"||state.sort!=="asc";}
+function updateFilterDot(){$("filter-dot").style.display=filtersActive()?"block":"none";}
+$("filter-btn").addEventListener("click",function(){
+  state.filterOpen=!state.filterOpen;
+  $("filter-panel").classList.toggle("open",state.filterOpen);
+  $("filter-btn").setAttribute("aria-expanded",state.filterOpen?"true":"false");
+  $("filter-btn").setAttribute("aria-label",state.filterOpen?"收起筛选":"展开筛选");
+});
+$("search-input").addEventListener("input",function(e){state.search=e.target.value;$("search-clear").style.display=state.search?"flex":"none";renderLists();});
+$("search-clear").addEventListener("click",function(){state.search="";$("search-input").value="";$("search-clear").style.display="none";renderLists();});
+
+/* 版本代码：风格代码-V主.次.修订，风格数据每改一次递增 */
+function vcode(p){return p.code+"-V"+(p.ver||"1.0.0");}
+function dedupeTags(p){var seen={};return [p.region,p.colorType].concat(p.keywords||[]).filter(function(t){if(seen[t])return false;seen[t]=1;return true;}).join(" · ");}
+function tagChips(p){
+  var seen={};return [p.region,p.colorType].concat(p.keywords||[]).filter(function(t){if(seen[t])return false;seen[t]=1;return true;}).map(function(t){return '<span class="tagchip">'+esc(t)+"</span>";}).join("");
+}
+function favBtnHTML(p,cls){
+  var fav=isFav(p.id);
+  return '<button type="button" class="fav-btn '+(cls||"")+(fav?" on":"")+'" data-act="fav" data-fav-id="'+p.id+'" aria-pressed="'+(fav?"true":"false")+'" aria-label="'+(fav?"取消收藏 ":"收藏 ")+esc(p.name)+'">'+HEART_SVG+"</button>";
+}
+function wireFavBtn(btn,p,after){
+  btn.addEventListener("click",function(e){
+    e.stopPropagation();
+    toggleFav(p.id);var on=isFav(p.id);
+    document.querySelectorAll('.fav-btn[data-fav-id="'+p.id+'"]').forEach(function(b){
+      b.classList.toggle("on",on);
+      b.setAttribute("aria-pressed",on?"true":"false");
+      b.setAttribute("aria-label",(on?"取消收藏 ":"收藏 ")+p.name);
+    });
+    btn.classList.remove("pop");void btn.offsetWidth;btn.classList.add("pop");
+    renderLists();
+    if(after)after(on);
+  });
+}
+</script>
+
+<script>
+"use strict";
+/* 大图卡片：与 0.2.5 平铺版一致——单张大图占满卡片宽度，默认优化后，
+   点图 0.5 秒交叉淡化切原图 / 优化后；点卡片其他区域或「查看详情」滑进详情层。 */
+function buildCard(p){
+  var card=document.createElement("article");card.className="card";
+  var prev=effectivePreview(p);
+  var sample=sampleFor(p);
+  var showBefore=!!state.cardModes[p.id];
+  card.innerHTML='<div class="card-head"><div class="card-title"><h3>'+esc(p.name)+'</h3></div>'
+    +favBtnHTML(p)+"</div>"
+    +'<p class="tagline">'+esc(p.tagline)+'</p>'
+    +'<div class="tagrow">'+tagChips(p)+"</div>"
+    +'<figure class="bigfig"><button type="button" class="bigimg'+(showBefore?" show-before":"")+'" data-act="swap" aria-pressed="'+(showBefore?"true":"false")+'" aria-label="'+esc(p.name)+' 示例大图，当前为'+(showBefore?"原图":"优化后")+'，点击切换">'
+    +'<img class="img-after" src="'+esc(prev)+'" alt="'+esc(p.code)+' 优化后成片" loading="lazy">'
+    +'<img class="img-before" src="'+esc(sample.img)+'" alt="" loading="lazy">'
+    +'<span class="badge" data-role="state-badge">'+(showBefore?"原图":"优化后")+'</span>'
+    +'<span class="swap-hint" data-role="swap-hint">'+(showBefore?"点击看优化后":"点击看原图")+'</span></button>'
+    +'<figcaption><span>'+esc(sample.label)+' · '+esc(p.name)+'套用效果 · '+esc(p.region)+' · '+esc(p.colorType)+'</span></figcaption></figure>'
+    +'<div class="ver-line"><span>版本代码</span><span class="vcode">'+esc(vcode(p))+"</span></div>"
+    +'<button type="button" class="detail-link" data-act="detail">查看详情 <span class="chev">›</span></button>';
+  var swapBtn=card.querySelector('[data-act="swap"]');
+  swapBtn.addEventListener("click",function(e){
+    e.stopPropagation();
+    var nowBefore=!state.cardModes[p.id];state.cardModes[p.id]=nowBefore;
+    swapBtn.classList.toggle("show-before",nowBefore);
+    swapBtn.setAttribute("aria-pressed",nowBefore?"true":"false");
+    swapBtn.setAttribute("aria-label",p.name+" 示例大图，当前为"+(nowBefore?"原图":"优化后")+"，点击切换");
+    swapBtn.querySelector('[data-role="state-badge"]').textContent=nowBefore?"原图":"优化后";
+    swapBtn.querySelector('[data-role="swap-hint"]').textContent=nowBefore?"点击看优化后":"点击看原图";
+  });
+  wireFavBtn(card.querySelector('[data-act="fav"]'),p);
+  card.querySelector('[data-act="detail"]').addEventListener("click",function(){openDetail(p);});
+  card.addEventListener("click",function(e){
+    if(e.target.closest("button"))return;
+    openDetail(p);
+  });
+  return card;
+}
+function fillGrid(gridEl,list){
+  gridEl.innerHTML="";
+  list.forEach(function(p){gridEl.appendChild(buildCard(p));});
+}
+/* 浏览页分组：风光 / 人像 / 自定义，均为竖排大图卡片 */
+var BROWSE_GROUPS=[
+  {key:"landscape",label:"风光",test:function(p){return p.sec==="landscape"&&!p.custom;}},
+  {key:"portrait",label:"人像",test:function(p){return p.sec==="portrait";}},
+  {key:"custom",label:"自定义",test:function(p){return !!p.custom;}}
+];
+/* 用户上传风格在浏览页的卡片：单张示例图 + 风格名 + 简介，标明用户上传；不进详情 / 试照片（没有大师风格的处理参数） */
+function buildUserStyleCard(us){
+  var card=document.createElement("article");card.className="card";
+  card.innerHTML='<div class="card-head"><div class="card-title"><h3>'+esc(us.name)+'</h3></div><span class="user-badge">用户上传</span></div>'
+    +(us.intro?'<p class="tagline">'+esc(us.intro)+'</p>':"")
+    +'<div class="tagrow"><span class="tagchip">自定义</span><span class="tagchip">用户上传</span></div>'
+    +'<figure class="bigfig"><div class="bigimg" style="cursor:default"><img src="'+esc(us.image&&us.image.dataUrl?us.image.dataUrl:"")+'" alt="'+esc(us.name)+' 风格示例图" loading="lazy"></div>'
+    +'<figcaption><span>我的风格示例图 · '+esc(us.name)+' · 用户上传</span></figcaption></figure>';
+  return card;
+}
+function renderLists(){
+  /* 浏览 */
+  var wrap=$("browse-groups");wrap.innerHTML="";
+  var searching=state.search.trim()!=="";
+  var anyVisible=false;
+  BROWSE_GROUPS.forEach(function(g){
+    var all=DATA.filter(g.test);
+    var list=all.filter(function(p){return matchesFilters("browse",p);});
+    if(state.sort==="desc")list=list.slice().reverse();
+    if(!list.length)return;
+    anyVisible=true;
+    var head=document.createElement("div");head.className="group-head";
+    head.innerHTML="<h2>"+(searching?"搜索结果 · ":"")+esc(g.label)+"</h2><span>"+list.length+" / "+all.length+" 个风格</span>";
+    wrap.appendChild(head);
+    var grid=document.createElement("div");grid.className="grid";
+    list.forEach(function(p){grid.appendChild(buildCard(p));});
+    wrap.appendChild(grid);
+  });
+  /* 用户上传的个人风格：并列出现在自定义组（标明用户上传），不进 19 个大师风格、不进资料库 */
+  var myStyles=userStyles.filter(function(us){
+    var q=state.search.trim().toLowerCase();
+    if(!q)return true;
+    return (us.name+" "+(us.intro||"")).toLowerCase().indexOf(q)>-1;
+  });
+  if(myStyles.length){
+    anyVisible=true;
+    var uhead=document.createElement("div");uhead.className="group-head";
+    uhead.innerHTML="<h2>"+(searching?"搜索结果 · ":"")+"自定义 · 用户上传</h2><span>"+myStyles.length+" 个我的风格</span>";
+    wrap.appendChild(uhead);
+    var ugrid=document.createElement("div");ugrid.className="grid";
+    myStyles.forEach(function(us){ugrid.appendChild(buildUserStyleCard(us));});
+    wrap.appendChild(ugrid);
+  }
+  if(!anyVisible){
+    var em=document.createElement("div");em.className="empty glass";
+    em.innerHTML="没有符合的风格。<br>换个关键词，或放宽筛选试试。";
+    wrap.appendChild(em);
+  }
+  /* 风光 / 人像 */
+  var ls=filteredList("landscape");fillGrid($("list-landscape"),ls);
+  $("empty-landscape").style.display=ls.length?"none":"block";
+  $("landscape-count").textContent="共 "+DATA.filter(function(p){return p.sec==="landscape"&&!p.custom;}).length+" 个风格 · 当前显示 "+ls.length+" 个";
+  var pt=filteredList("portrait");fillGrid($("list-portrait"),pt);
+  $("empty-portrait").style.display=pt.length?"none":"block";
+  $("portrait-count").textContent="共 "+DATA.filter(function(p){return p.sec==="portrait";}).length+" 个风格 · 当前显示 "+pt.length+" 个";
+  /* 我的收藏（位于「我的」页） */
+  var fv=filteredList("mine");fillGrid($("list-favorites"),fv);
+  $("empty-favorites").style.display=fv.length?"none":"block";
+  $("favorites-count").textContent=favorites.length?("已收藏 "+favorites.length+" 个"):"暂无收藏";
+}
+
+/* 底部导航切换：页面平滑出现，各页滚动位置各自记住 */
+function showPage(page){
+  if(page===state.page&&$("page-"+page).classList.contains("active"))return;
+  pageScroll[state.page]=window.scrollY||0;
+  state.page=page;
+  PAGE_ORDER.forEach(function(pg){
+    $("page-"+pg).classList.toggle("active",pg===page);
+    $("nav-"+pg).setAttribute("aria-selected",pg===page?"true":"false");
+  });
+  if(typeof moveTabIndicator==="function"){var g=(typeof tabGentleOnce!=="undefined"&&tabGentleOnce);tabGentleOnce=false;moveTabIndicator(page,true,g);}
+  window.scrollTo(0,pageScroll[page]||0);
+}
+PAGE_ORDER.forEach(function(pg){
+  $("nav-"+pg).addEventListener("click",function(){showPage(pg);});
+});
+
+/* 滑入层显隐：关闭态 display:none；打开先 display 再滑入，关闭滑出后再隐藏 */
+function layerShow(el){el.classList.add("shown");void el.offsetWidth;requestAnimationFrame(function(){requestAnimationFrame(function(){el.classList.add("open");});});}
+function layerHide(el){el.classList.remove("open");setTimeout(function(){if(!el.classList.contains("open"))el.classList.remove("shown");},540);}
+
+/* 第 1 层：风格详情，从右侧滑入；关闭即回到原页面原位置 */
+function openDetail(p){
+  state.detailId=p.id;
+  $("detail-back-label").textContent=$("settings-sheet").classList.contains("open")?"通用设置":PAGE_LABEL[state.page];
+  $("detail-bar-title").textContent=p.name;
+  var prev=effectivePreview(p);
+  var sample=sampleFor(p);
+  var showBefore=false;
+  var body=$("detail-body");
+  body.innerHTML='<figure class="bigfig detail-hero"><button type="button" class="bigimg" data-role="dswap" aria-pressed="false" aria-label="'+esc(p.name)+' 示例大图，当前为优化后，点击切换">'
+    +'<img class="img-after" src="'+esc(prev)+'" alt="'+esc(p.code)+' 优化后成片">'
+    +'<img class="img-before" src="'+esc(sample.img)+'" alt="">'
+    +'<span class="badge" data-role="state-badge">优化后</span>'
+    +'<span class="swap-hint" data-role="swap-hint">点击看原图</span></button>'
+    +'<figcaption><span>'+esc(sample.label)+' · '+esc(p.name)+'套用效果</span></figcaption></figure>'
+    +'<h3 class="detail-name">'+esc(p.name)+"</h3>"
+    +'<p class="detail-meta">'+esc(p.region)+' · '+esc(p.colorType)+(p.custom?' · 自定义风格':"")+"</p>"
+    +'<p class="detail-tagline">'+esc(p.tagline)+"</p>"
+    +'<div class="tagrow">'+tagChips(p)+"</div>"
+    +'<div class="ver-line"><span>版本代码</span><span class="vcode">'+esc(vcode(p))+"</span></div>"
+    +'<button type="button" class="try-big-btn" data-role="try">用这个风格试我的照片</button>'
+    +'<div class="detail-favrow">'+favBtnHTML(p,"detail-fav")+'<span data-role="fav-tip">'+(isFav(p.id)?"已收藏，可在「我的 · 通用设置」里查看":"点爱心收藏这个风格")+"</span></div>";
+  var swapBtn=body.querySelector('[data-role="dswap"]');
+  swapBtn.addEventListener("click",function(){
+    showBefore=!showBefore;
+    swapBtn.classList.toggle("show-before",showBefore);
+    swapBtn.setAttribute("aria-pressed",showBefore?"true":"false");
+    swapBtn.setAttribute("aria-label",p.name+" 示例大图，当前为"+(showBefore?"原图":"优化后")+"，点击切换");
+    swapBtn.querySelector('[data-role="state-badge"]').textContent=showBefore?"原图":"优化后";
+    swapBtn.querySelector('[data-role="swap-hint"]').textContent=showBefore?"点击看优化后":"点击看原图";
+  });
+  wireFavBtn(body.querySelector(".detail-fav"),p,function(on){
+    body.querySelector('[data-role="fav-tip"]').textContent=on?"已收藏，可在「我的 · 通用设置」里查看":"点爱心收藏这个风格";
+  });
+  body.querySelector('[data-role="try"]').addEventListener("click",function(){openTry(p);});
+  $("detail-sheet").scrollTop=0;
+  layerShow($("detail-sheet"));
+  document.body.style.overflow="hidden";
+}
+function closeDetail(){
+  layerHide($("detail-sheet"));
+  state.detailId=null;
+  if(!$("try-view").classList.contains("open")&&!$("lib-sheet").classList.contains("open")&&!$("settings-sheet").classList.contains("open")&&!$("submit-sheet").classList.contains("open"))document.body.style.overflow="";
+}
+$("detail-back").addEventListener("click",closeDetail);
+/* 详情右滑关闭 */
+(function(){
+  var sheet=$("detail-sheet"),sx=null,sy=null;
+  sheet.addEventListener("pointerdown",function(e){sx=e.clientX;sy=e.clientY;});
+  sheet.addEventListener("pointerup",function(e){
+    if(sx===null)return;
+    var dx=e.clientX-sx,dy=e.clientY-sy;
+    sx=null;
+    if(dx>90&&Math.abs(dy)<70)closeDetail();
+  });
+  sheet.addEventListener("pointercancel",function(){sx=null;});
+})();
+
+/* 资料库：从收藏页进入 */
+function openLib(){
+  $("lib-sheet").scrollTop=0;
+  layerShow($("lib-sheet"));
+  document.body.style.overflow="hidden";
+}
+function closeLib(){
+  layerHide($("lib-sheet"));
+  if(!$("detail-sheet").classList.contains("open")&&!$("try-view").classList.contains("open")&&!$("settings-sheet").classList.contains("open")&&!$("submit-sheet").classList.contains("open"))document.body.style.overflow="";
+}
+$("lib-open").addEventListener("click",openLib);
+$("lib-back").addEventListener("click",closeLib);
+
+/* 通用设置 / 创意投稿二级页：从「我的」一级页进入，点「‹ 我的」返回 */
+function openSettings(){$("settings-sheet").scrollTop=0;layerShow($("settings-sheet"));document.body.style.overflow="hidden";}
+function closeSettings(){layerHide($("settings-sheet"));if(!$("detail-sheet").classList.contains("open")&&!$("try-view").classList.contains("open")&&!$("lib-sheet").classList.contains("open")&&!$("submit-sheet").classList.contains("open"))document.body.style.overflow="";}
+function openSubmit(){$("submit-sheet").scrollTop=0;layerShow($("submit-sheet"));document.body.style.overflow="hidden";}
+function closeSubmit(){layerHide($("submit-sheet"));if(!$("detail-sheet").classList.contains("open")&&!$("try-view").classList.contains("open")&&!$("lib-sheet").classList.contains("open")&&!$("settings-sheet").classList.contains("open"))document.body.style.overflow="";}
+$("settings-open").addEventListener("click",openSettings);
+$("settings-back").addEventListener("click",closeSettings);
+$("submit-open").addEventListener("click",openSubmit);
+$("submit-back").addEventListener("click",closeSubmit);
+
+/* 邀请码 / 用户协议二级页：从「我的」一级页进入，点「‹ 我的」返回 */
+function anyOtherLayerOpen(exceptId){
+  return ["detail-sheet","lib-sheet","try-view","settings-sheet","submit-sheet","invite-sheet","agreement-sheet"].some(function(id){
+    return id!==exceptId&&$(id).classList.contains("open");
+  });
+}
+function openInvite(){$("invite-sheet").scrollTop=0;layerShow($("invite-sheet"));document.body.style.overflow="hidden";}
+function closeInvite(){layerHide($("invite-sheet"));if(!anyOtherLayerOpen("invite-sheet"))document.body.style.overflow="";}
+function openAgreement(){$("agreement-sheet").scrollTop=0;layerShow($("agreement-sheet"));document.body.style.overflow="hidden";}
+function closeAgreement(){layerHide($("agreement-sheet"));if(!anyOtherLayerOpen("agreement-sheet"))document.body.style.overflow="";}
+$("invite-open").addEventListener("click",openInvite);
+$("invite-back").addEventListener("click",closeInvite);
+$("agreement-open").addEventListener("click",openAgreement);
+$("agreement-back").addEventListener("click",closeAgreement);
+
+/* 手风琴折叠组：所有 [data-acc] 默认收起，点标题行平滑展开 / 再点收起，组与组互不影响 */
+document.querySelectorAll("[data-acc]").forEach(function(acc){
+  var head=acc.querySelector("[data-acc-head]");
+  if(!head)return;
+  head.addEventListener("click",function(){
+    var open=acc.classList.toggle("open");
+    head.setAttribute("aria-expanded",open?"true":"false");
+  });
+});
+/* 用户协议：默认只显示草案说明与摘要，点「展开全文」才平滑展开完整协议 */
+$("agree-toggle").addEventListener("click",function(){
+  var full=$("agree-full");
+  var open=full.classList.toggle("open");
+  this.setAttribute("aria-expanded",open?"true":"false");
+  this.textContent=open?"收起全文":"展开全文";
+});
+
+var SITE_VERSION="0.2.15";
+function renderLibrary(){
+  $("lib-sub").textContent="网站整体版本：极简版 "+SITE_VERSION+" · 更新记录：0.2.15（2026-10-28）邀请码与用户协议新增 + 折叠组版：「我的」一级页在「通用设置」「创意投稿」之外再加两个菜单入口——「邀请码」「用户协议」，一级页不铺开具体内容；点「邀请码」进二级页（带「‹ 我的」返回），内含两个默认收起的折叠组：邀请码填入（输入框 + 提交，提交后仅本地保存并显示已填入状态，明确注明联网验证待接入、当前仅本地保存未联网验证、未确认是否有效；不编造真实可用码、不假装已验证通过）与邀请码申请（姓名 / 昵称选填、联系方式、申请理由，提交后仅本地保存并提示待审核、未联网发送，另提供复制申请内容按钮）；点「用户协议」进二级页，先显示草案说明与摘要、点「展开全文」才平滑展开完整协议全文，协议为草案模板（开头注明正式公开发布或商用前建议请律师审核），包含服务说明（仅提供图片优化 / 风格模拟预览，不提供摄影、设计、广告等专业服务）、使用范围（仅限个人、非商业用途，不得将软件、风格、生成图片用于商业用途、不得转售、不得用于广告 / 商品 / 宣传等商业场景，开发者不授予任何商业授权）、生成图片所有权（原图与生成图片所有权均归用户，开发者不侵占、不主张所有权、不用于商业、不擅自使用用户图片，本地处理不上传时开发者无法访问）、用户责任、知识产权、免责声明、隐私、未成年人、禁止行为、服务变更与终止、法律适用与争议解决（适用中华人民共和国法律）、协议变更与生效（使用即表示同意）；通用设置二级页改为手风琴折叠组：字体大小、页面颜色、减少动效、试照片默认强度、清除本地数据、关于与版本、我的收藏、资料库、用户反馈各组默认全部收起，只显示一行标题与当前值（如字体大小：标准、页面颜色：跟随系统），点标题行才平滑展开具体控件 / 列表 / 表单，再点收起，进页不再把所有内容铺开；其余 0.2.14 功能全部保留；0.2.14（2026-10-28）「我的」页分级收起版：「我的」一级页只显示头像、名字与名字下方一行小字 ID（含复制），下面只放「通用设置」「创意投稿」两个入口，不再铺开字体、颜色、动效、默认强度、清除、关于、收藏列表、反馈表单与我的风格列表，顶部大篇幅本地保存说明已删除，全站不再反复强调本地保存、只在「关于与版本」里留一行小字说明；点「通用设置」进二级页（带「‹ 我的」返回），里面收齐字体大小四档（实时全站生效）、页面颜色三档（白色 / 黑色 / 跟随系统）、减少动效开关、试照片默认强度（50 / 75 / 100，默认 75%，试照片打开时与设置选中档一致、无 80% 档外值）、清除本地数据（二次确认）、关于与版本与隐私说明，以及我的收藏、用户反馈、资料库的入口 / 内容；点「创意投稿」进二级页（带「‹ 我的」返回），里面是上传个人风格表单（选图、风格名、简介、提交）与已上传的我的风格小卡片（可删除），上传后同步到浏览页自定义组、与芝加哥并列并标明用户上传、不进 19 个大师风格，表单选图行上方不用指向风格名输入框的标签、风格名标签只保留一处；其余 0.2.13 功能全部保留；0.2.13（2026-10-28）新增「我的」页版：底部导航第四项由「收藏」改为「我的」，导航变为浏览 / 风光 / 人像 / 我的；原收藏功能移入「我的」页做「我的收藏」一节（默认收藏芝加哥不变，点卡片仍进详情），资料库入口随之移入「我的」页；「我的」页顶部为用户信息区：默认头像可点选相册图更换、名字可改、首次打开自动生成本地 ID（如 BE-XXXXXX）显示在名字下方并可一键复制，页面明确注明本页为静态页、无服务器账号，头像 / 名字 / ID / 收藏 / 设置 / 上传风格只保存在访客自己浏览器本地、不跨设备同步、不上传服务器，本地 ID 非登录账号；新增「通用设置」一节：字体大小四档（小 / 标准 / 大 / 特大，实时改全站字号并本地记住）、页面颜色三档（白色 / 黑色 / 跟随系统，与右上角深浅切换按钮同步）、减少动效开关、试照片默认强度（50% / 75% / 100%）、清除本地数据（操作前二次确认）、关于与版本（当前版本与隐私说明：照片本地处理不上传）；新增「用户反馈」一节（框架）：反馈类型（功能建议 / 显示问题 / 风格问题 / 其他）、内容、选填联系方式、提交按钮——静态页目前没有可用的反馈服务器，提交后只本地保存并明确提示「联网反馈功能待接入，当前仅本地保存、尚未发送给开发者」，另提供「复制反馈内容」按钮，不假装已联网发送；新增「我的风格」一节：可从相册选一张风格示例图、填风格名与一句话简介，提交后本地保存并以小卡片展示（可删除），同时出现在浏览页自定义组与芝加哥并列并标明用户上传，不自动上架到 19 个大师风格；本地数据按未来联网版 / App 可迁移的结构保存：用户信息、收藏、通用设置、上传风格、反馈各自使用独立稳定的本地存储键与固定字段，本地 ID 作为设备 ID 字段保留（以后可映射 / 绑定服务器账号 ID），头像与上传风格图片保留原图数据与元数据（文件名 / 类型 / 字节数 / 宽高 / 时间）不做不可逆压缩裁剪，反馈按以后接口的字段形状（类型 / 内容 / 联系方式 / 时间 / 版本 / 设备信息）本地保存；其余 0.2.12 功能全部保留；0.2.12（2026-10-28）PT-04 浓彩成片换图版：仅更换 PT-04「浓彩」的人像成片，换图原因：瞳孔颜色修复——旧成片瞳孔颜色奇怪，新成片为干净照片（不带卡片 UI、不带文字、不带爱心），中央穿灰色卫衣的年轻男子面貌、衣服、位置、神态不变，背景人群构图不变，浓烈色彩人文肖像风格保留，瞳孔为自然深棕 / 黑色、无奇怪彩色瞳孔；卡片、详情页与试照片所用的浓彩成片已统一换为新图；PT-04 版本代码按规则由 PT-04-V1.2.0 升为 PT-04-V1.2.1，资料库 PT-04 条目同步记录该换图原因；卡片标题仍只显示短名「浓彩」、不显示代码，版本代码只在版本行 / 详情版本信息 / 资料库显示；其余 18 个风格、其他功能全部不变，其余 0.2.11 功能全部保留；0.2.11（2026-10-28）导航尺寸同步修复版：修复底部胶囊导航选中指示块与胶囊 / 按钮尺寸错位一拍的问题——根源是切换缩小 / 恢复的同一瞬间就去量按钮尺寸，量到的还是动画开始前的旧尺寸（缩小后指示块仍是正常态的大尺寸、恢复后仍是缩小态的小尺寸）；改为先以无动画方式按目标态的最终布局量出按钮尺寸、定好指示块的动画目标，再切换状态，让指示块与胶囊、按钮同帧、同 0.38s、同缓动一起变到目标态：缩小态（仅图标）指示块等于缩小态按钮的实际宽高，正常态（图标 + 文字）等于正常态按钮的实际宽高；胶囊自身宽度也随状态同步变化（缩小态更窄、正常态更宽，与指示块同一次动画）；胶囊动画结束后按按钮实际尺寸再精确对齐一次兜底；上滑缩小、下滑超约 100px 阈值恢复、回到顶部恢复、切页面、窗口尺寸变化时都立即按当前目标态重算指示块位置与尺寸，不用缓存的上一状态尺寸；左右滑动时指示实时跟随手指、松手按最近项确认才跳转、边缘橡皮筋平滑保持不变；其余 0.2.10 功能全部保留；0.2.10（2026-10-28）导航边缘平滑 + 试照片点击转换版：底部胶囊导航滑动到最左（浏览）/ 最右（收藏）两端时改平滑——拖动越过两端后指示块不再硬顶住，改带阻力的橡皮筋跟随（越界部分约 0.32 倍平滑跟随一小段），指示跟随手指的缓动放缓，松手落在两端项时 settle 改用约 0.55s 的更平缓缓动滑到该项，去掉硬性弹吸与过冲，不再突然跳变或卡住；中间项的滑动跟随、松手按最近项确认才跳转保持不变；试照片彻底去掉前后对比分割线、分隔线把手与「前后对比」滑轮，不再左右分屏对比，改回整图点击转换：点一下生成图即以约 0.5 秒交叉淡化在原图与处理后之间切换，再点切回，图上标签同步显示「原图 / 处理后」、右下角提示「点击看原图 / 点击看处理后」；风格强度滑轮保留，仍实时逐像素出图（0% 约原图、100% 满风格），点击切换是在当前强度下整图切换，两者不冲突；下载与长按保存不变；其余 0.2.9 功能全部保留；0.2.9（2026-10-28）胶囊导航滑动选中 + 缩小态只留图标版：底部胶囊加独立的玻璃选中指示块，按住左右滑动时指示实时平滑跟随手指、主页面不跳转，松手按最近的导航项确认后指示滑到该项、页面才跳转，滑动很小仍在原项上时只滑回原项不跳转，轻点同样带指示滑动动画跳转；上滑缩小态改为隐去「浏览 / 风光 / 人像 / 收藏」文字标签（平滑收起），图标保持约 23px 接近正常尺寸，胶囊主要靠去掉文字行变矮，恢复时文字平滑淡入回来；缩小态下图标仍可点、仍可左右滑动选中、松手才跳转，与自动缩小 / 下滑超阈值恢复动画互不冲突；其余 0.2.8 功能全部保留；0.2.8（2026-10-28）点击切换 + 导航自动缩小版：试照片前后对比支持轻点切换——点图片本身或分隔线把手即可在原图与处理后之间切换，分隔线约 380ms 平滑滑到 0% / 100%，左右标签、滑轮与无障碍读数同步；拖动超过约 10px 仍按拖动对比、轻点才切换，两者不冲突；底部胶囊导航在手指上滑（页面向下滚动）时自动等比缩小到约 0.76 倍（高度、图标、文字一起收，仍可见可点、不消失），手指下滑需累计超过约 100px 才平滑恢复正常尺寸，小幅下滑与来回抖动不触发反复缩放，回到页面顶部也恢复，缩放动画约 380ms 缓动、滚动监听用 rAF 节流；其余 0.2.7 功能全部保留；0.2.7（2026-10-28）胶囊导航 + 双主题 + 水印版：底部导航由满宽长条改为悬浮居中的胶囊药丸形（液态玻璃：半透明、背景模糊、高光边、柔和阴影，与内容留边距并适配安全区）；卡片标题只显示短名、不再显示风格代码，代码与版本代码只保留在资料库与详情版本信息里；标题行旁重复的「地域 · 色彩」移到大图下方小字说明行（与示例图说明合并）；卡片容器背景透明度约 70%（液态玻璃，背景水印可隐约透出，大图本身保持 100% 不透明、文字保持清晰）；新增深色 / 浅色双主题（右上角玻璃圆钮切换，默认跟随系统，切换后本地记住）；全站背景加浅浅的「BE MUSTER」大字斜排水印，深浅主题下都只是隐约可见；其余 0.2.6 功能全部保留；0.2.6（2026-10-28）Apple Music 风格试验版：按 Apple Music 设计语言做浅分级——底部毛玻璃导航常驻（浏览 / 风光 / 人像 / 收藏），浏览页为大标题 + 胶囊搜索 + 示例图循环轮播 + 按风光 / 人像 / 自定义分组的竖排大图卡片，风光 / 人像页为竖排大图列表，点卡片从右侧滑进一层风格详情（大图点切换原图 / 优化后、版本代码、红色爱心收藏、「用这个风格试我的照片」大按钮，左上角返回或右滑关闭即回原位），详情再进全屏试照片（正在播放式，点 ✕ 回详情）；风格展示全程保留 0.2.5 的单张大图卡片式（大图占满卡片宽度、点图 0.5 秒交叉淡化），不缩成小方图；资料库移到收藏页顶部入口；19 个短名、代码、标签、微简介、版本代码、默认收藏芝加哥、本地收藏记忆、本地逐像素处理、筛选、搜索、循环轮播、毛玻璃、下载与长按保存全部保留；不好可回档到 0.2.5 平铺版；0.2.5（2026-10-28）已回档平铺版：去掉 0.2.4 层级试验结构，恢复一级页面平铺浏览；0.2.4（2026-10-28）层级试验版已跳过，不再保留：曾把页面拆为多层跳转，因分隔后使用不便而回档；0.2.3（2026-10-28）重做试照片处理页：本地逐像素计算、可拖动对比分割线与滑轮双向同步、风格强度实时出图、下载与长按保存成品图；0.2.2（2026-10-28）风格名改为 ins 式短名、顶部四页签玻璃滑块、每卡收藏按钮并本地记住、默认收藏芝加哥；0.2.1（2026-10-28）卡片改单张大图、点击交叉淡化切换原图/优化后；0.2.0（2026-10-28）风格去作者名改名、原图/优化对比、轮播循环、新增版本代码与资料库；0.1.0 极简版首版。版本代码规则：风格代码-V主.次.修订，风格数据每改一次对应递增，网站整体版本同步更新。";
+  var box=$("lib-list");box.innerHTML="";
+  [["portrait","人像 PT-01～PT-10"],["landscape","风光 LS-01～LS-08 · 自定义 CU-01"]].forEach(function(g){
+    var h=document.createElement("p");h.className="lib-group";h.textContent=g[1];box.appendChild(h);
+    DATA.filter(function(p){return p.sec===g[0];}).forEach(function(p){
+      var row=document.createElement("div");row.className="lib-row";
+      row.innerHTML='<span class="lcode">'+esc(p.code)+'</span><span class="lname">'+esc(p.name)+'</span>'
+        +'<span class="lver"><small>版本代码</small>'+esc(vcode(p))+'</span>'
+        +'<span class="ltags">'+esc(dedupeTags(p))+"｜"+esc(p.tagline)+(p.note?"｜"+esc(p.note):"")+"</span>";
+      box.appendChild(row);
+    });
+  });
+}
+
+/* 本地处理照片（纯 Canvas 逐像素处理，不上传）
+   不用 ctx.filter —— 它在 iOS Safari / 微信 / QQ 内置浏览器里会被静默忽略。
+   每个风格的参数先合成一个 3×3 色彩矩阵 + 偏移，满强度结果只算一次存成像素缓冲；
+   拖强度时只做 原图↔满风格 的逐像素混合（rAF 节流），0% = 原图、100% = 满风格。 */
+var photo={img:null,url:null,name:"photo"};
+var pv={key:"",w:0,h:0,src:null,proc:null,out:null};
+var saveUrl=null;
+var scratchCtx=document.createElement("canvas").getContext("2d");
+function newImageData(w,h){return scratchCtx.createImageData(w,h);}
+function matMul(A,B){
+  var R=[0,0,0,0,0,0,0,0,0];
+  for(var r=0;r<3;r++)for(var c=0;c<3;c++){var s=0;for(var k=0;k<3;k++)s+=A[r*3+k]*B[k*3+c];R[r*3+c]=s;}
+  return R;
+}
+function styleAffine(f){
+  var M=[1,0,0,0,1,0,0,0,1],O=[0,0,0];
+  function apply(m2,o2){
+    var nM=matMul(m2,M);
+    var nO=[m2[0]*O[0]+m2[1]*O[1]+m2[2]*O[2]+(o2?o2[0]:0),
+            m2[3]*O[0]+m2[4]*O[1]+m2[5]*O[2]+(o2?o2[1]:0),
+            m2[6]*O[0]+m2[7]*O[1]+m2[8]*O[2]+(o2?o2[2]:0)];
+    M=nM;O=nO;
+  }
+  function satMatrix(s){return [0.213+0.787*s,0.715-0.715*s,0.072-0.072*s,0.213-0.213*s,0.715+0.285*s,0.072-0.072*s,0.213-0.213*s,0.715-0.715*s,0.072+0.928*s];}
+  var b=(f.b==null?1:f.b);if(b!==1)apply([b,0,0,0,b,0,0,0,b]);
+  var c=(f.c==null?1:f.c);if(c!==1){var off=127.5*(1-c);apply([c,0,0,0,c,0,0,0,c],[off,off,off]);}
+  var s=(f.s==null?1:f.s);if(s!==1)apply(satMatrix(s));
+  var g=f.g||0;if(g>0)apply(satMatrix(1-g));
+  var sep=f.sep||0;if(sep>0){
+    var S=[0.393,0.769,0.189,0.349,0.686,0.168,0.272,0.534,0.131];
+    apply([(1-sep)+sep*S[0],sep*S[1],sep*S[2],sep*S[3],(1-sep)+sep*S[4],sep*S[5],sep*S[6],sep*S[7],(1-sep)+sep*S[8]]);
+  }
+  var hue=f.hue||0;if(hue){
+    var rad=hue*Math.PI/180,cs=Math.cos(rad),sn=Math.sin(rad);
+    apply([0.213+cs*0.787-sn*0.213,0.715-cs*0.715-sn*0.715,0.072-cs*0.072+sn*0.928,
+           0.213-cs*0.213+sn*0.143,0.715+cs*0.285+sn*0.140,0.072-cs*0.072-sn*0.283,
+           0.213-cs*0.213-sn*0.787,0.715-cs*0.715+sn*0.715,0.072+cs*0.928+sn*0.072]);
+  }
+  return {m:M,o:O};
+}
+function computeStyled(src,w,h,f){
+  var A=styleAffine(f),m=A.m,o=A.o;
+  var sd=src.data,out=newImageData(w,h),od=out.data;
+  var vig=f.vig||0;
+  var cx=w/2,cy=h/2,rMax=Math.sqrt(cx*cx+cy*cy)||1;
+  var dxSq=new Float32Array(w),dySq=new Float32Array(h),x,y,i;
+  for(x=0;x<w;x++){var dxn=(x-cx)/rMax;dxSq[x]=dxn*dxn;}
+  for(y=0;y<h;y++){var dyn=(y-cy)/rMax;dySq[y]=dyn*dyn;}
+  for(y=0;y<h;y++){
+    for(x=0;x<w;x++){
+      i=(y*w+x)*4;
+      var R=sd[i],G=sd[i+1],B=sd[i+2];
+      var r=m[0]*R+m[1]*G+m[2]*B+o[0];
+      var g2=m[3]*R+m[4]*G+m[5]*B+o[1];
+      var b2=m[6]*R+m[7]*G+m[8]*B+o[2];
+      if(vig>0.01){
+        var d=Math.sqrt(dxSq[x]+dySq[y]);
+        var a=(d-0.55)/0.45;if(a<0)a=0;if(a>1)a=1;a=a*a*(3-2*a);
+        var k=1-vig*a;r*=k;g2*=k;b2*=k;
+      }
+      od[i]=r<0?0:(r>255?255:r);
+      od[i+1]=g2<0?0:(g2>255?255:g2);
+      od[i+2]=b2<0?0:(b2>255?255:b2);
+      od[i+3]=255;
+    }
+  }
+  return out;
+}
+function blendInto(out,src,proc,t){
+  var ad=src.data,bd=proc.data,od=out.data,i;
+  if(t<=0){od.set(ad);return;}
+  if(t>=1){od.set(bd);return;}
+  for(i=0;i<od.length;i+=4){
+    od[i]=ad[i]+(bd[i]-ad[i])*t;
+    od[i+1]=ad[i+1]+(bd[i+1]-ad[i+1])*t;
+    od[i+2]=ad[i+2]+(bd[i+2]-ad[i+2])*t;
+    od[i+3]=255;
+  }
+}
+function fitSize(img,maxSide){
+  var scale=Math.min(1,maxSide/Math.max(img.naturalWidth,img.naturalHeight));
+  return [Math.max(1,Math.round(img.naturalWidth*scale)),Math.max(1,Math.round(img.naturalHeight*scale))];
+}
+function imageDataOf(img,w,h){
+  var cv=document.createElement("canvas");cv.width=w;cv.height=h;
+  var ctx=cv.getContext("2d");ctx.drawImage(img,0,0,w,h);
+  return ctx.getImageData(0,0,w,h);
+}
+function buildPreview(){
+  if(!photo.img||!state.selected)return;
+  var key=photo.url+"|"+state.selected.id;
+  if(pv.key===key&&pv.src)return;
+  var sz=fitSize(photo.img,1280);
+  pv.w=sz[0];pv.h=sz[1];
+  pv.src=imageDataOf(photo.img,pv.w,pv.h);
+  pv.proc=computeStyled(pv.src,pv.w,pv.h,state.selected.filter);
+  pv.out=newImageData(pv.w,pv.h);
+  pv.key=key;
+  var pc=$("ba-canvas");pc.width=pv.w;pc.height=pv.h;
+  var oc=$("ba-orig-canvas");oc.width=pv.w;oc.height=pv.h;
+  oc.getContext("2d").putImageData(pv.src,0,0);
+}
+function renderPreview(){
+  if(!photo.img||!state.selected)return;
+  buildPreview();
+  if(!pv.src)return;
+  var t=parseInt($("strength-slider").value,10)/100;
+  blendInto(pv.out,pv.src,pv.proc,t);
+  $("ba-canvas").getContext("2d").putImageData(pv.out,0,0);
+  $("strength-out").textContent=Math.round(t*100)+"%";
+}
+var rafPending=false;
+function scheduleRender(){
+  if(rafPending)return;
+  rafPending=true;
+  requestAnimationFrame(function(){rafPending=false;renderPreview();});
+}
+/* 点击转换（无分割线）：整张生成图点一下就在原图与处理后之间交叉淡化切换（约 0.5 秒），
+   点一次变处理后、再点变回原图；图上状态标签与「点击切换」提示同步。
+   原图画布整幅盖在处理后画布上层，只切透明度；强度滑轮仍实时重绘下层的处理后画布，
+   所以点击切换始终是在当前强度下整图切换，两者不冲突。 */
+var tryShowOrig=false;
+function syncTryView(){
+  var st=$("ba-stage");
+  st.classList.toggle("show-orig",tryShowOrig);
+  st.setAttribute("aria-pressed",tryShowOrig?"true":"false");
+  st.setAttribute("aria-label","生成图预览，当前显示"+(tryShowOrig?"原图":"处理后")+"，点一下切换到"+(tryShowOrig?"处理后":"原图"));
+  $("ba-state-label").textContent=tryShowOrig?"原图":"处理后";
+  $("ba-swap-hint").textContent=tryShowOrig?"点击看处理后":"点击看原图";
+}
+function resetTryView(){tryShowOrig=false;syncTryView();}
+$("ba-stage").addEventListener("click",function(){
+  if(!photo.img)return;
+  tryShowOrig=!tryShowOrig;syncTryView();
+});
+$("ba-stage").addEventListener("keydown",function(e){
+  if(e.key!=="Enter"&&e.key!==" ")return;
+  if(!photo.img)return;
+  e.preventDefault();
+  tryShowOrig=!tryShowOrig;syncTryView();
+});
+/* 下载状态与成品图（长按保存兜底） */
+function setStatus(msg,isErr){
+  var el=$("dl-status");
+  el.textContent=msg||"";
+  el.classList.toggle("err",!!isErr);
+}
+function hideSave(){
+  $("save-panel").style.display="none";
+  $("save-img").removeAttribute("src");
+  if(saveUrl){URL.revokeObjectURL(saveUrl);saveUrl=null;}
+}
+function invalidateSave(){
+  if($("save-panel").style.display==="none")return;
+  hideSave();
+  setStatus("参数已调整，点「下载处理后的照片」按当前设置重新生成成品图。",false);
+}
+/* 第 2 层：试照片全屏，从详情进入，点 ✕ 回到详情 */
+function openTry(p){
+  state.selected=p;
+  /* 试照片初始强度完全由通用设置驱动：只取设置三档（50% / 75% / 100%）之一，
+     任何档外值一律落回默认 75%，每次打开按当前设置重置滑轮 */
+  var ds=[50,75,100].indexOf(settings.defaultStrength)>-1?settings.defaultStrength:75;
+  if(ds!==settings.defaultStrength){settings.defaultStrength=ds;saveSettings();}
+  $("strength-slider").value=ds;
+  $("strength-out").textContent=ds+"%";
+  $("try-title").textContent=p.name;
+  $("try-desc").textContent=p.custom?"压暗、暗部暖黄、高光冷蓝。照片只在本机处理，不上传。":"在本机近似这个风格的色彩与影调。照片只在本机处理，不上传。";
+  resetTryView();
+  hideSave();setStatus("");
+  if(photo.img)renderPreview();
+  $("try-view").scrollTop=0;
+  layerShow($("try-view"));
+  document.body.style.overflow="hidden";
+}
+function closeTry(){
+  layerHide($("try-view"));
+  if(!$("detail-sheet").classList.contains("open")&&!$("lib-sheet").classList.contains("open")&&!$("settings-sheet").classList.contains("open")&&!$("submit-sheet").classList.contains("open"))document.body.style.overflow="";
+}
+$("try-close").addEventListener("click",closeTry);
+$("file-input").addEventListener("change",function(e){
+  var f=e.target.files&&e.target.files[0];if(!f)return;
+  if(["image/jpeg","image/png","image/webp"].indexOf(f.type)<0){setStatus("这张照片的格式不支持，请选 JPG、PNG 或 WebP。",true);return;}
+  if(photo.url)URL.revokeObjectURL(photo.url);
+  photo.url=URL.createObjectURL(f);photo.name=(f.name||"photo").replace(/\.[^.]+$/,"");
+  pv.key="";pv.src=null;hideSave();setStatus("");
+  var img=new Image();
+  img.onload=function(){
+    photo.img=img;
+    $("ba-wrap").style.display="block";
+    resetTryView();
+    renderPreview();
+  };
+  img.onerror=function(){setStatus("这张照片读取失败，请换一张再试。",true);};
+  img.src=photo.url;
+});
+$("strength-slider").addEventListener("input",function(){
+  $("strength-out").textContent=$("strength-slider").value+"%";
+  scheduleRender();
+  invalidateSave();
+});
+$("change-photo-btn").addEventListener("click",function(){
+  if(photo.url)URL.revokeObjectURL(photo.url);
+  photo.url=null;photo.img=null;pv.key="";pv.src=null;pv.proc=null;
+  hideSave();setStatus("");
+  $("ba-wrap").style.display="none";$("file-input").value="";
+  $("upload-zone").scrollIntoView({behavior:"smooth",block:"center"});
+});
+$("download-btn").addEventListener("click",function(){
+  if(!photo.img||!state.selected){setStatus("还没有可下载的照片：先选一张照片，再点下载。",true);return;}
+  setStatus("正在按当前风格强度生成成品图…",false);
+  try{
+    var sz=fitSize(photo.img,2560);
+    var src=imageDataOf(photo.img,sz[0],sz[1]);
+    var proc=computeStyled(src,sz[0],sz[1],state.selected.filter);
+    var t=parseInt($("strength-slider").value,10)/100;
+    var out=newImageData(sz[0],sz[1]);
+    blendInto(out,src,proc,t);
+    var cv=document.createElement("canvas");cv.width=sz[0];cv.height=sz[1];
+    cv.getContext("2d").putImageData(out,0,0);
+    if(typeof cv.toBlob!=="function"){throw new Error("当前浏览器不支持图片导出");}
+    cv.toBlob(function(blob){
+      if(!blob){setStatus("导出失败：浏览器没有生成图片。请换一张小一点的照片重试，或对上方预览图截图保存。",true);return;}
+      if(saveUrl)URL.revokeObjectURL(saveUrl);
+      saveUrl=URL.createObjectURL(blob);
+      $("save-img").src=saveUrl;
+      $("save-panel").style.display="block";
+      var fname="bemaster-"+state.selected.code.toLowerCase()+"-"+photo.name+".jpg";
+      var dlOk=false;
+      try{
+        var a=document.createElement("a");a.href=saveUrl;a.download=fname;
+        document.body.appendChild(a);a.click();a.remove();dlOk=true;
+      }catch(e2){dlOk=false;}
+      setStatus(dlOk
+        ?"已按风格强度 "+Math.round(t*100)+"% 生成成品图并开始下载。如果浏览器拦下了下载（微信 / QQ 里常见），长按下方的成品图就能保存到相册。"
+        :"已按风格强度 "+Math.round(t*100)+"% 生成成品图。当前浏览器不支持自动下载，请长按下方的成品图保存到相册。",false);
+      $("save-panel").scrollIntoView({behavior:"smooth",block:"nearest"});
+    },"image/jpeg",0.92);
+  }catch(err){
+    setStatus("导出失败："+(err&&err.message?err.message:"未知错误")+"。请换一张小一点的照片重试，或对上方预览图截图保存。",true);
+  }
+});
+$("open-img-btn").addEventListener("click",function(){
+  if(!saveUrl){setStatus("先点「下载处理后的照片」生成成品图。",true);return;}
+  var w=null;
+  try{w=window.open(saveUrl,"_blank");}catch(e){w=null;}
+  if(!w)setStatus("新窗口被浏览器拦下了，没关系：直接长按上方成品图，选择「存储到照片 / 保存图片」即可。",false);
+});
+
+/* 胶囊导航滑动选中：独立的玻璃指示块在按钮下层平移。
+   按住左右滑动时指示实时跟随手指（短缓动平滑、不跳变），滑动中不切页；
+   松手时按指示中心最近的导航项确认——指示滑到该项后才调用 showPage 跳转；
+   滑动很小、松手仍在原项上时只滑回原项、不跳转；轻点仍走按钮 click，
+   showPage 会带动指示滑动过去。拖动后的合成 click 用时间戳抑制，避免二次触发。 */
+/* tabGentleOnce：拖动松手落在两端项（浏览 / 收藏）时置位，showPage 带动的这次指示滑动
+   改用更平缓、更长的缓动，避免到边缘时猛吸过去；中间项仍用原来的 .38s 缓动。 */
+var tabGentleOnce=false;
+/* tabShrunkTarget：胶囊「正在处于或正在变往」的状态（true=缩小态）。
+   指示块永远按目标态的最终布局量尺寸：以前在 class 切换的同一瞬间量 offsetWidth/Height，
+   量到的还是按钮动画开始前的旧尺寸，指示块就总比按钮慢一拍——缩小态顶着正常态的大块、
+   恢复时又留着缩小态的小块。现在改由 tabBtnMetrics 在需要时以无动画方式临时切到目标态、
+   强制回流量出最终尺寸再切回，指示块随即与胶囊 / 按钮同帧、同 0.38s、同缓动一起变到目标态。 */
+var tabShrunkTarget=false;
+function tabBtnMetrics(page){
+  var bar=document.querySelector(".tabbar"),b=$("nav-"+page);
+  if(!bar||!b)return null;
+  if(bar.classList.contains("shrunk")===tabShrunkTarget){
+    return{x:b.offsetLeft,y:b.offsetTop,w:b.offsetWidth,h:b.offsetHeight};
+  }
+  bar.classList.add("tab-noanim");
+  bar.classList.toggle("shrunk",tabShrunkTarget);
+  void bar.offsetHeight; /* 强制回流：此刻布局已是目标态最终尺寸 */
+  var m={x:b.offsetLeft,y:b.offsetTop,w:b.offsetWidth,h:b.offsetHeight};
+  bar.classList.toggle("shrunk",!tabShrunkTarget);
+  void bar.offsetHeight;
+  bar.classList.remove("tab-noanim");
+  void bar.offsetHeight;
+  return m;
+}
+function moveTabIndicator(page,animate,gentle){
+  var ind=$("tab-ind"),m=tabBtnMetrics(page);
+  if(!ind||!m)return;
+  var reduced=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  ind.style.transition=(animate&&!reduced)
+    ?(gentle
+      ?"transform .55s cubic-bezier(.33,.72,.35,1),width .55s cubic-bezier(.33,.72,.35,1),top .55s cubic-bezier(.33,.72,.35,1),height .55s cubic-bezier(.33,.72,.35,1),opacity .25s ease"
+      :"transform .38s cubic-bezier(.22,1,.36,1),width .38s cubic-bezier(.22,1,.36,1),top .38s cubic-bezier(.22,1,.36,1),height .38s cubic-bezier(.22,1,.36,1),opacity .25s ease")
+    :"none";
+  ind.style.width=m.w+"px";
+  ind.style.height=m.h+"px";
+  ind.style.top=m.y+"px";
+  ind.style.transform="translateX("+m.x+"px)";
+  ind.style.opacity="1";
+}
+(function(){
+  var bar=document.querySelector(".tabbar");
+  if(!bar)return;
+  var ind=$("tab-ind");
+  var drag=null,suppressClickUntil=0;
+  function metrics(pg){var b=$("nav-"+pg);return{x:b.offsetLeft,w:b.offsetWidth};}
+  function nearestPage(centerX){
+    var best=state.page,bd=Infinity;
+    PAGE_ORDER.forEach(function(pg){var m=metrics(pg);var d=Math.abs(m.x+m.w/2-centerX);if(d<bd){bd=d;best=pg;}});
+    return best;
+  }
+  bar.addEventListener("pointerdown",function(e){
+    var m=metrics(state.page);
+    drag={startX:e.clientX,indX:m.x,w:m.w,curX:m.x,moved:false,id:e.pointerId};
+    /* 先不抢指针：轻点要原样落到按钮 click 上；确认拖动后再 capture */
+  });
+  bar.addEventListener("pointermove",function(e){
+    if(!drag)return;
+    var dx=e.clientX-drag.startX;
+    if(!drag.moved){
+      if(Math.abs(dx)<=6)return;
+      drag.moved=true;
+      bar.classList.add("tab-dragging");
+      try{bar.setPointerCapture(drag.id);}catch(err){}
+    }
+    var first=metrics(PAGE_ORDER[0]),last=metrics(PAGE_ORDER[PAGE_ORDER.length-1]);
+    var minX=first.x,maxX=last.x+last.w-drag.w;
+    var rawX=drag.indX+dx;
+    /* 边缘橡皮筋阻尼：滑过最左 / 最右后不再硬顶住，指示块带约 0.32 的阻力继续平滑跟随一小段，
+       松手再缓缓滑回边缘项，去掉到边边时那种猛吸 / 硬弹的感觉；区间内仍是 1:1 跟随，中间项不变 */
+    var nx=rawX;
+    if(rawX<minX)nx=minX+(rawX-minX)*0.32;
+    else if(rawX>maxX)nx=maxX+(rawX-maxX)*0.32;
+    drag.curX=nx;
+    ind.style.transition="transform .16s cubic-bezier(.25,.8,.35,1)";
+    ind.style.transform="translateX("+nx+"px)";
+  });
+  bar.addEventListener("pointerup",function(){
+    if(!drag)return;
+    bar.classList.remove("tab-dragging");
+    var wasMoved=drag.moved,center=drag.curX+drag.w/2;
+    drag=null;
+    if(!wasMoved)return; /* 轻点：交给按钮 click，showPage 带动指示滑动 */
+    suppressClickUntil=performance.now()+450;
+    var target=nearestPage(center);
+    var isEdge=(target===PAGE_ORDER[0]||target===PAGE_ORDER[PAGE_ORDER.length-1]);
+    if(target!==state.page){
+      if(isEdge)tabGentleOnce=true; /* 落在两端项：这次 settle 用更平缓的缓动，不猛吸 */
+      showPage(target); /* showPage 内部带动指示滑到目标项 */
+    }
+    else moveTabIndicator(state.page,true,isEdge); /* 还在原项：只平滑滑回，不跳转；原项在边缘时同样放缓 */
+  });
+  bar.addEventListener("pointercancel",function(){
+    bar.classList.remove("tab-dragging");
+    if(drag&&drag.moved){
+      suppressClickUntil=performance.now()+450;
+      var curEdge=(state.page===PAGE_ORDER[0]||state.page===PAGE_ORDER[PAGE_ORDER.length-1]);
+      moveTabIndicator(state.page,true,curEdge);
+    }
+    drag=null;
+  });
+  bar.addEventListener("click",function(e){
+    if(performance.now()<suppressClickUntil){e.stopPropagation();e.preventDefault();}
+  },true);
+  /* 胶囊自身的状态动画（缩 / 放，含宽度）一结束，按按钮当前实际尺寸再精确对齐一次，
+     兜底消除任何残余偏差；拖动选中进行中不干预，滑动跟随与松手确认逻辑不变 */
+  bar.addEventListener("transitionend",function(e){
+    if(e.target!==bar)return;
+    if(bar.classList.contains("tab-dragging"))return;
+    moveTabIndicator(state.page,false);
+  });
+  window.addEventListener("resize",function(){moveTabIndicator(state.page,false);});
+  requestAnimationFrame(function(){moveTabIndicator(state.page,false);});
+  setTimeout(function(){moveTabIndicator(state.page,false);},350);
+})();
+
+/* 底部胶囊导航自动缩小：手指上滑（页面向下滚动）时缩小，减少遮挡与误触；
+   手指下滑（页面向上滚动）不立刻恢复，累计下滑超过约 100px 才平滑恢复；
+   小幅下滑 / 来回抖动（≤2px 死区、方向切换清零累计）不会反复变大变小；回到顶部必恢复。
+   监听覆盖主页面滚动与详情 / 资料库 / 试照片三个滑入层各自的滚动，rAF 节流。 */
+(function(){
+  var bar=document.querySelector(".tabbar");
+  if(!bar)return;
+  var SHRINK_MIN_Y=48;    /* 离开顶部一段距离后才允许缩小 */
+  var RESTORE_ACCUM=100;  /* 累计下滑超过约 100px 才恢复正常尺寸 */
+  var DEAD=2;             /* 抖动死区 */
+  var shrunk=false;
+  function setShrunk(v){
+    if(v===shrunk)return;shrunk=v;tabShrunkTarget=v;
+    /* 先按目标态最终尺寸定指示块的动画目标（moveTabIndicator 内部以无动画方式量目标态布局），
+       再切换 class 让胶囊与按钮开始同一次动画——指示块与胶囊 / 按钮同帧、同 0.38s、同缓动
+       一起变到目标态尺寸，不再读到切换前一刻的旧尺寸而错位一拍 */
+    if(typeof moveTabIndicator==="function")moveTabIndicator(state.page,true);
+    bar.classList.toggle("shrunk",v);
+  }
+  function makeHandler(getY){
+    var last=null,upAccum=0,downAccum=0,ticking=false,pendingY=0;
+    function apply(){
+      ticking=false;
+      var y=Math.max(0,pendingY);
+      if(last===null){last=y;return;}
+      var dy=y-last;last=y;
+      if(y<=8){upAccum=0;downAccum=0;setShrunk(false);return;}
+      if(Math.abs(dy)<=DEAD)return;
+      if(dy>0){ /* 页面向下滚动（手指上滑）：累计一点即可缩小，向上累计清零 */
+        downAccum+=dy;upAccum=0;
+        if(y>SHRINK_MIN_Y&&downAccum>=6)setShrunk(true);
+      }else{ /* 页面向上滚动（手指下滑）：累计超过阈值才恢复 */
+        upAccum+=-dy;downAccum=0;
+        if(upAccum>=RESTORE_ACCUM)setShrunk(false);
+      }
+    }
+    return function(){
+      pendingY=getY();
+      if(!ticking){ticking=true;requestAnimationFrame(apply);}
+    };
+  }
+  window.addEventListener("scroll",makeHandler(function(){return window.scrollY||document.documentElement.scrollTop||0;}),{passive:true});
+  ["detail-sheet","lib-sheet","try-view","settings-sheet","submit-sheet","invite-sheet","agreement-sheet"].forEach(function(id){
+    var el=$(id);if(!el)return;
+    el.addEventListener("scroll",makeHandler(function(){return el.scrollTop||0;}),{passive:true});
+  });
+})();
+
+/* ============ 「我的」页：用户信息 / 通用设置 / 我的风格 / 用户反馈 ============
+   全部只读写本地数据层（见 STORE_KEYS），不发任何网络请求。 */
+var DEFAULT_AVATAR="data:image/svg+xml;utf8,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#d9d9de"/><circle cx="50" cy="38" r="17" fill="#a7a7ad"/><path d="M18 88c5-16 17-24 32-24s27 8 32 24" fill="#a7a7ad"/></svg>');
+function copyText(text,done){
+  function fallback(){
+    var ta=document.createElement("textarea");ta.value=text;ta.style.position="fixed";ta.style.opacity="0";
+    document.body.appendChild(ta);ta.select();
+    var ok=false;try{ok=document.execCommand("copy");}catch(e){}
+    ta.remove();done(ok);
+  }
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(function(){done(true);},function(){fallback();});
+  }else fallback();
+}
+/* 读一张用户选的图片：保留原图数据与元数据，不裁剪、不重压缩（以后可原样迁移到服务器存储）。
+   返回 {dataUrl, fileName, mimeType, byteSize, width, height, capturedAt} */
+function readImageOriginal(file,cb){
+  var rd=new FileReader();
+  rd.onload=function(){
+    var dataUrl=String(rd.result||"");
+    var img=new Image();
+    img.onload=function(){
+      cb({dataUrl:dataUrl,fileName:file.name||"",mimeType:file.type||"",byteSize:file.size||0,
+          width:img.naturalWidth||0,height:img.naturalHeight||0,capturedAt:nowISO()});
+    };
+    img.onerror=function(){cb(null);};
+    img.src=dataUrl;
+  };
+  rd.onerror=function(){cb(null);};
+  rd.readAsDataURL(file);
+}
+/* ---------- 用户信息 ---------- */
+function renderProfile(){
+  $("avatar-img").src=(profile.avatarImage&&profile.avatarImage.dataUrl)?profile.avatarImage.dataUrl:DEFAULT_AVATAR;
+  $("profile-name").textContent=profile.displayName;
+  $("profile-id").textContent=profile.deviceId;
+}
+$("avatar-btn").addEventListener("click",function(){$("avatar-input").click();});
+$("avatar-input").addEventListener("change",function(e){
+  var f=e.target.files&&e.target.files[0];e.target.value="";
+  if(!f)return;
+  if(["image/jpeg","image/png","image/webp"].indexOf(f.type)<0){$("profile-status").textContent="这张图的格式不支持，请选 JPG、PNG 或 WebP。";return;}
+  readImageOriginal(f,function(meta){
+    if(!meta){$("profile-status").textContent="头像读取失败，请换一张再试。";return;}
+    profile.avatarImage=meta;
+    if(saveProfile()){$("profile-status").textContent="头像已更新。";}
+    else{$("profile-status").textContent="保存失败：这张图太大，请换一张小一点的图。";profile.avatarImage=null;}
+    renderProfile();
+  });
+});
+$("name-edit-btn").addEventListener("click",function(){
+  $("name-input").value=profile.displayName;
+  $("name-edit-row").classList.add("open");
+  $("name-input").focus();
+});
+$("name-save-btn").addEventListener("click",function(){
+  var v=$("name-input").value.trim();
+  if(!v){$("profile-status").textContent="名字不能为空。";return;}
+  profile.displayName=v.slice(0,20);
+  saveProfile();renderProfile();
+  $("name-edit-row").classList.remove("open");
+  $("profile-status").textContent="名字已更新。";
+});
+$("copy-id-btn").addEventListener("click",function(){
+  copyText(profile.deviceId,function(ok){
+    $("profile-status").textContent=ok?("ID 已复制："+profile.deviceId):"复制失败，请长按 ID 手动复制。";
+  });
+});
+/* ---------- 通用设置 ---------- */
+function segSync(containerId,val){
+  var c=$(containerId);if(!c)return;
+  c.querySelectorAll("button[data-val]").forEach(function(b){
+    b.setAttribute("aria-checked",b.getAttribute("data-val")===String(val)?"true":"false");
+  });
+}
+function renderSettings(){
+  segSync("set-font",settings.fontSize);
+  segSync("set-color",settings.colorMode);
+  segSync("set-strength",settings.defaultStrength);
+  $("set-motion").setAttribute("aria-checked",settings.reduceMotion?"true":"false");
+  var av=$("about-version");if(av)av.textContent=SITE_VERSION;
+  /* 折叠组标题行的当前值，与控件选中项始终一致 */
+  var fontLabels={small:"小",standard:"标准",large:"大",xlarge:"特大"};
+  var colorLabels={light:"白色",dark:"黑色",system:"跟随系统"};
+  var fv=$("acc-font-val");if(fv)fv.textContent=fontLabels[settings.fontSize]||"标准";
+  var cv=$("acc-color-val");if(cv)cv.textContent=colorLabels[settings.colorMode]||"跟随系统";
+  var mv=$("acc-motion-val");if(mv)mv.textContent=settings.reduceMotion?"开":"关";
+  var sv=$("acc-strength-val");if(sv)sv.textContent=settings.defaultStrength+"%";
+  var abv=$("acc-about-val");if(abv)abv.textContent=SITE_VERSION;
+}
+function segWire(containerId,apply){
+  var c=$(containerId);if(!c)return;
+  c.querySelectorAll("button[data-val]").forEach(function(b){
+    b.addEventListener("click",function(){apply(b.getAttribute("data-val"));saveSettings();applySettings();});
+  });
+}
+segWire("set-font",function(v){settings.fontSize=v;});
+segWire("set-color",function(v){settings.colorMode=v;});
+segWire("set-strength",function(v){settings.defaultStrength=parseInt(v,10);});
+$("set-motion").addEventListener("click",function(){
+  settings.reduceMotion=!settings.reduceMotion;
+  saveSettings();applySettings();
+});
+/* 清除本地数据：不用系统弹窗（沙箱里不可用），按钮二次点击确认 */
+var clearArmed=false,clearTimer=null;
+$("clear-data-btn").addEventListener("click",function(){
+  var btn=$("clear-data-btn");
+  if(!clearArmed){
+    clearArmed=true;btn.classList.add("armed");btn.textContent="确定要清除吗？再点一次确认清除";
+    clearTimer=setTimeout(function(){clearArmed=false;btn.classList.remove("armed");btn.textContent="清除本地数据";},4000);
+    return;
+  }
+  clearTimeout(clearTimer);clearArmed=false;btn.classList.remove("armed");btn.textContent="清除本地数据";
+  try{
+    localStorage.removeItem(STORE_KEYS.settings);
+    localStorage.removeItem(STORE_KEYS.userStyles);
+    localStorage.removeItem(STORE_KEYS.favorites);
+    localStorage.removeItem(STORE_KEYS.invite);
+    localStorage.removeItem(STORE_KEYS.inviteApplications);
+    localStorage.removeItem("bemaster-minimal-theme");
+  }catch(e){}
+  settings.fontSize="standard";settings.colorMode="system";settings.reduceMotion=false;settings.defaultStrength=75;
+  inviteState=null;inviteApplications.length=0;
+  if(typeof renderInvite==="function")renderInvite();
+  userStyles.length=0;
+  favorites.length=0;favorites.push("chicago"); /* 回到首次打开的默认收藏 */
+  profile.displayName="摄影爱好者";profile.avatarImage=null;saveProfile(); /* 本地 ID（设备 ID）保留 */
+  applySettings();renderProfile();renderUserStyles();renderLists();
+  $("clear-status").textContent="已清除收藏、设置、上传风格、头像、名字与邀请码记录，并恢复默认；ID 已保留。";
+});
+/* ---------- 我的风格 ---------- */
+var pendingStyleImage=null;
+$("ustyle-file").addEventListener("change",function(e){
+  var f=e.target.files&&e.target.files[0];e.target.value="";
+  if(!f)return;
+  if(["image/jpeg","image/png","image/webp"].indexOf(f.type)<0){$("ustyle-file-status").textContent="格式不支持，请选 JPG、PNG 或 WebP。";return;}
+  readImageOriginal(f,function(meta){
+    if(!meta){$("ustyle-file-status").textContent="图片读取失败，请换一张再试。";return;}
+    pendingStyleImage=meta;
+    var pv=$("ustyle-preview");pv.src=meta.dataUrl;pv.style.display="block";
+    $("ustyle-file-status").textContent="已选："+(meta.fileName||"示例图");
+  });
+});
+function renderUserStyles(){
+  var box=$("ustyle-list");box.innerHTML="";
+  $("ustyle-empty").style.display=userStyles.length?"none":"block";
+  userStyles.forEach(function(us){
+    var card=document.createElement("div");card.className="ustyle-card";
+    card.innerHTML='<img src="'+esc(us.image&&us.image.dataUrl?us.image.dataUrl:"")+'" alt="'+esc(us.name)+' 风格示例图">'
+      +'<div class="ui"><h4>'+esc(us.name)+'</h4>'
+      +(us.intro?'<p>'+esc(us.intro)+'</p>':"")
+      +'<p class="src">用户上传</p></div>'
+      +'<button type="button" class="ustyle-del">删除</button>';
+    card.querySelector(".ustyle-del").addEventListener("click",function(){
+      var i=userStyles.indexOf(us);if(i>-1)userStyles.splice(i,1);
+      saveUserStyles();renderUserStyles();renderLists();
+      $("ustyle-status").textContent="已删除「"+us.name+"」，浏览页自定义组里也同步移除了。";
+    });
+    box.appendChild(card);
+  });
+}
+$("ustyle-add-btn").addEventListener("click",function(){
+  var name=$("ustyle-name").value.trim();
+  var intro=$("ustyle-intro").value.trim();
+  if(!pendingStyleImage){$("ustyle-status").textContent="先选一张风格示例图，再添加。";return;}
+  if(!name){$("ustyle-status").textContent="给这个风格起个名字再添加。";return;}
+  userStyles.push({
+    id:"US-"+Date.now().toString(36).toUpperCase(),
+    name:name.slice(0,16),intro:intro.slice(0,40),
+    image:pendingStyleImage,source:"user-upload",
+    createdAt:nowISO(),updatedAt:nowISO()
+  });
+  if(!saveUserStyles()){
+    userStyles.pop();
+    $("ustyle-status").textContent="保存失败：图片太大，超出了浏览器本地存储的容量，请换一张小一点的图。";
+    return;
+  }
+  pendingStyleImage=null;
+  $("ustyle-preview").style.display="none";$("ustyle-preview").removeAttribute("src");
+  $("ustyle-file-status").textContent="还没选图";
+  $("ustyle-name").value="";$("ustyle-intro").value="";
+  renderUserStyles();renderLists();
+  $("ustyle-status").textContent="已添加到「我的风格」，也已出现在浏览页自定义组里（标明用户上传）。";
+});
+/* ---------- 用户反馈（框架：暂无反馈服务器，仅本地保存，以后换成接口地址即可提交） ---------- */
+function feedbackText(fb){
+  return "【BE MASTER 反馈】\n类型："+fb.type+"\n内容："+fb.content
+    +(fb.contact?"\n联系方式："+fb.contact:"")
+    +"\n时间："+fb.createdAt+"\n版本：极简版 "+fb.appVersion+"\n本地 ID："+profile.deviceId;
+}
+function renderFeedbackStatus(){
+  $("fb-status").textContent=feedbackLog.length?("本机已保存 "+feedbackLog.length+" 条反馈（尚未发送给开发者）。"):"";
+}
+$("fb-submit-btn").addEventListener("click",function(){
+  var content=$("fb-content").value.trim();
+  if(!content){$("fb-status").textContent="先写下反馈内容再提交。";return;}
+  /* 字段就是以后接口的提交形状：type / content / contact / createdAt / appVersion / deviceInfo */
+  var fb={
+    id:"FB-"+Date.now().toString(36).toUpperCase(),
+    type:$("fb-type").value,
+    content:content.slice(0,1000),
+    contact:$("fb-contact").value.trim().slice(0,60),
+    createdAt:nowISO(),
+    appVersion:SITE_VERSION,
+    deviceInfo:{
+      userAgent:String(navigator.userAgent||""),
+      language:String(navigator.language||""),
+      platform:String(navigator.platform||""),
+      screen:window.screen?(window.screen.width+"x"+window.screen.height):""
+    }
+  };
+  feedbackLog.push(fb);
+  if(!saveFeedbackLog()){feedbackLog.pop();$("fb-status").textContent="保存失败：浏览器本地存储空间不足。";return;}
+  $("fb-notice").classList.add("show");
+  renderFeedbackStatus();
+  $("fb-status").textContent="已保存到本机。联网反馈功能待接入，尚未发送给开发者；可用下方按钮复制后通过其他渠道发送。";
+});
+$("fb-copy-btn").addEventListener("click",function(){
+  var last=feedbackLog[feedbackLog.length-1];
+  var draft={
+    type:$("fb-type").value,content:$("fb-content").value.trim(),
+    contact:$("fb-contact").value.trim(),createdAt:nowISO(),appVersion:SITE_VERSION
+  };
+  var text=feedbackText(last||draft);
+  copyText(text,function(ok){
+    $("fb-status").textContent=ok?"反馈内容已复制，可以粘贴到微信 / 邮件里发给开发者。":"复制失败，请长按反馈内容手动复制。";
+  });
+});
+
+/* ---------- 邀请码：填入（仅本地保存、未联网验证）与申请（仅本地保存、待审核、未联网发送） ---------- */
+function renderInvite(){
+  var val=$("invite-state-val"),notice=$("invite-notice");
+  if(inviteState&&inviteState.code){
+    val.textContent="已填入 · 未联网验证";
+    if($("invite-code-input").value==="")$("invite-code-input").value=inviteState.code;
+    notice.innerHTML="已填入邀请码：<strong>"+esc(inviteState.code)+"</strong><br>联网验证待接入，当前仅本地保存、<strong>未联网验证</strong>，尚未确认该邀请码是否有效，也不代表已获得任何授权或资格。";
+    notice.classList.add("show");
+  }else{
+    val.textContent="未填入";
+    notice.innerHTML="";notice.classList.remove("show");
+  }
+  var av=$("invite-apply-val"),an=$("invite-apply-notice");
+  var last=inviteApplications[inviteApplications.length-1];
+  if(last){
+    av.textContent="已提交 · 待审核";
+    an.innerHTML="最近一次申请已保存在本机（"+esc(last.createdAt.slice(0,10))+"），状态：<strong>待审核</strong>。联网提交待接入，申请<strong>尚未发送</strong>给开发者、尚未进入审核流程；可用下方按钮复制申请内容，通过其他渠道发送。";
+    an.classList.add("show");
+    renderInviteApplyStatus();
+  }else{
+    av.textContent="未申请";
+    an.innerHTML="";an.classList.remove("show");
+  }
+}
+function renderInviteApplyStatus(){
+  $("invite-apply-status").textContent=inviteApplications.length?("本机已保存 "+inviteApplications.length+" 条申请（待审核，尚未发送）。"):"";
+}
+$("invite-submit-btn").addEventListener("click",function(){
+  var code=$("invite-code-input").value.trim();
+  if(!code){$("invite-status").textContent="先输入邀请码再提交。";return;}
+  inviteState={code:code.slice(0,40),enteredAt:nowISO(),verificationStatus:"not-verified-local-only"};
+  if(!saveInvite()){$("invite-status").textContent="保存失败：浏览器本地存储空间不足。";inviteState=null;renderInvite();return;}
+  renderInvite();
+  $("invite-status").textContent="已保存到本机。联网验证待接入，当前未联网验证、未确认是否有效。";
+});
+function inviteApplyText(a){
+  return "【BE MASTER 邀请码申请】\n姓名 / 昵称："+(a.name||"（未填）")+"\n联系方式："+a.contact+"\n申请理由："+a.reason
+    +"\n时间："+a.createdAt+"\n版本：极简版 "+a.appVersion+"\n本地 ID："+profile.deviceId+"\n状态：待审核（仅本地保存，未联网发送）";
+}
+$("invite-apply-btn").addEventListener("click",function(){
+  var contact=$("invite-apply-contact").value.trim();
+  var reason=$("invite-apply-reason").value.trim();
+  if(!contact){$("invite-apply-status").textContent="先填写联系方式，方便把邀请码发给你。";return;}
+  if(!reason){$("invite-apply-status").textContent="简单写一下申请理由再提交。";return;}
+  var a={
+    id:"IV-"+Date.now().toString(36).toUpperCase(),
+    name:$("invite-apply-name").value.trim().slice(0,30),
+    contact:contact.slice(0,60),
+    reason:reason.slice(0,500),
+    createdAt:nowISO(),
+    appVersion:SITE_VERSION,
+    status:"pending-local-only"
+  };
+  inviteApplications.push(a);
+  if(!saveInviteApplications()){inviteApplications.pop();$("invite-apply-status").textContent="保存失败：浏览器本地存储空间不足。";return;}
+  renderInvite();
+  $("invite-apply-status").textContent="申请已保存到本机，状态：待审核。联网提交待接入，尚未发送给开发者；可用下方按钮复制后通过其他渠道发送。";
+});
+$("invite-apply-copy-btn").addEventListener("click",function(){
+  var last=inviteApplications[inviteApplications.length-1];
+  var draft={
+    name:$("invite-apply-name").value.trim(),
+    contact:$("invite-apply-contact").value.trim(),
+    reason:$("invite-apply-reason").value.trim(),
+    createdAt:nowISO(),appVersion:SITE_VERSION
+  };
+  var a=last||draft;
+  if(!a.contact&&!a.reason){$("invite-apply-status").textContent="先填写申请内容，或先提交一次申请，再复制。";return;}
+  copyText(inviteApplyText(a),function(ok){
+    $("invite-apply-status").textContent=ok?"申请内容已复制，可以粘贴到微信 / 邮件里发给开发者。":"复制失败，请长按申请内容手动复制。";
+  });
+});
+
+/* 初始化：试照片滑轮起始值与通用设置「试照片默认强度」保持一致（档外值落回 75%） */
+if([50,75,100].indexOf(settings.defaultStrength)<0){settings.defaultStrength=75;saveSettings();}
+$("strength-slider").value=settings.defaultStrength;
+$("strength-out").textContent=settings.defaultStrength+"%";
+applySettings();renderProfile();renderUserStyles();renderFeedbackStatus();renderInvite();
+renderFilters();updateFilterDot();renderCarousel();renderLists();renderLibrary();
+syncTryView();
+showPage("browse");
+</script>
+
+</body>
+</html>
